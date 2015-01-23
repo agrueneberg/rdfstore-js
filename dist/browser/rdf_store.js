@@ -5157,29 +5157,10 @@ JSONLDParser.parser.parse = function(data, graph) {
 
 
 // end of ./src/js-communication/src/jsonld_parser.js 
-// This code is taking from the N3 project from Ruben Verborgh licensed under the MIT license. See https://github.com/RubenVerborgh/node-n3/blob/master/LICENSE.md
-
 // **N3Lexer** tokenizes N3 documents.
-// ## Regular expressions
-var patterns = {
-  _explicituri: /^<((?:[^\x00-\x20<>\\"\{\}\|\^\`]|\\[uU])*)>/,
-  _string: /^"[^"\\]*(?:\\.[^"\\]*)*"(?=[^"\\])|^'[^'\\]*(?:\\.[^'\\]*)*'(?=[^'\\])/,
-  _tripleQuotedString: /^""("[^"\\]*(?:(?:\\.|"(?!""))[^"\\]*)*")""|^''('[^'\\]*(?:(?:\\.|'(?!''))[^'\\]*)*')''/,
-  _langcode: /^@([a-z]+(?:-[a-z0-9]+)*)(?=[^a-z0-9\-])/i,
-  _prefix: /^((?:[A-Za-z\xc0-\xd6\xd8-\xf6\xf8-\u02ff\u0370-\u037d\u037f-\u1fff\u200c\u200d\u2070-\u218f\u2c00-\u2fef\u3001-\ud7ff\uf900-\ufdcf\ufdf0-\ufffd]|[\ud800-\udb7f][\udc00-\udfff])(?:[\.\-0-9A-Z_a-z\xb7\xc0-\xd6\xd8-\xf6\xf8-\u037d\u037f-\u1fff\u200c\u200d\u203f\u2040\u2070-\u218f\u2c00-\u2fef\u3001-\ud7ff\uf900-\ufdcf\ufdf0-\ufffd]|[\ud800-\udb7f][\udc00-\udfff])*)?:(?=\s)/,
-  _qname:  /^((?:[A-Z_a-z\xc0-\xd6\xd8-\xf6\xf8-\u02ff\u0370-\u037d\u037f-\u1fff\u200c\u200d\u2070-\u218f\u2c00-\u2fef\u3001-\ud7ff\uf900-\ufdcf\ufdf0-\ufffd]|[\ud800-\udb7f][\udc00-\udfff])(?:[\.\-0-9A-Z_a-z\xb7\xc0-\xd6\xd8-\xf6\xf8-\u037d\u037f-\u1fff\u200c\u200d\u203f\u2040\u2070-\u218f\u2c00-\u2fef\u3001-\ud7ff\uf900-\ufdcf\ufdf0-\ufffd]|[\ud800-\udb7f][\udc00-\udfff])*)?:((?:(?:[0-:A-Z_a-z\xc0-\xd6\xd8-\xf6\xf8-\u02ff\u0370-\u037d\u037f-\u1fff\u200c\u200d\u2070-\u218f\u2c00-\u2fef\u3001-\ud7ff\uf900-\ufdcf\ufdf0-\ufffd]|[\ud800-\udb7f][\udc00-\udfff]|%[0-9a-fA-F]{2}|\\[!#-\/;=?\-@_~])(?:(?:[\.\-0-:A-Z_a-z\xb7\xc0-\xd6\xd8-\xf6\xf8-\u037d\u037f-\u1fff\u200c\u200d\u203f\u2040\u2070-\u218f\u2c00-\u2fef\u3001-\ud7ff\uf900-\ufdcf\ufdf0-\ufffd]|[\ud800-\udb7f][\udc00-\udfff]|%[0-9a-fA-F]{2}|\\[!#-\/;=?\-@_~])*(?:[\-0-:A-Z_a-z\xb7\xc0-\xd6\xd8-\xf6\xf8-\u037d\u037f-\u1fff\u200c\u200d\u203f\u2040\u2070-\u218f\u2c00-\u2fef\u3001-\ud7ff\uf900-\ufdcf\ufdf0-\ufffd]|[\ud800-\udb7f][\udc00-\udfff]|%[0-9a-fA-F]{2}|\\[!#-\/;=?\-@_~]))?)?)(?=[\s\.;,)#])/,
-  _number: /^[\-+]?(?:\d+\.?\d*([eE](?:[\-\+])?\d+)|\d+\.\d+|\.\d+|\d+)(?=\s*[\s\.;,)#])/,
-  _boolean: /^(?:true|false)(?=[\s#,;.])/,
-  _punctuation: /^\.(?!\d)|^;|^,|^\[|^\]|^\(|^\)/, // If a digit follows a dot, it is a number, not punctuation.
-  _fastString: /^"[^"\\]+"(?=[^"\\])/,
-  _keyword: /^(?:@[a-z]+|[Pp][Rr][Ee][Ff][Ii][Xx]|[Bb][Aa][Ss][Ee])(?=\s)/,
-  _type: /^\^\^(?:<([^>]*)>|([A-Z_a-z\u00c0-\u00d6\u00d8-\u00f6\u00f8-\u02ff\u0370-\u037d\u037f-\u1fff\u200c-\u200d\u2070-\u218f\u2c00-\u2fef\u3001-\ud7ff\uf900-\ufdcf\ufdf0-\ufffd][\-0-9A-Z_a-z\u00b7\u00c0-\u00d6\u00d8-\u00f6\u00f8-\u037d\u037f-\u1fff\u200c-\u200d\u203f-\u2040\u2070-\u218f\u2c00-\u2fef\u3001-\ud7ff\uf900-\ufdcf\ufdf0-\ufffd]*)?:([A-Z_a-z\u00c0-\u00d6\u00d8-\u00f6\u00f8-\u02ff\u0370-\u037d\u037f-\u1fff\u200c-\u200d\u2070-\u218f\u2c00-\u2fef\u3001-\ud7ff\uf900-\ufdcf\ufdf0-\ufffd][\-0-9A-Z_a-z\u00b7\u00c0-\u00d6\u00d8-\u00f6\u00f8-\u037d\u037f-\u1fff\u200c-\u200d\u203f-\u2040\u2070-\u218f\u2c00-\u2fef\u3001-\ud7ff\uf900-\ufdcf\ufdf0-\ufffd]*)(?=[\s\.;,)#]))/,
-  _shortPredicates: /^a(?=\s+|<)/,
-  _newline: /^[ \t]*(?:#[^\n\r]*)?(?:\r\n|\n|\r)[ \t]*/,
-  _whitespace: /^[ \t]+/,
-  _nonwhitespace: /^\S*/,
-  _endOfFile: /^(?:#[^\n\r]*)?$/
-};
+var fromCharCode = String.fromCharCode;
+var immediately = typeof setImmediate === 'function' ? setImmediate :
+                  function setImmediate(func) { setTimeout(func, 0); };
 
 // Regular expression and replacement string to escape N3 strings.
 // Note how we catch invalid unicode sequences separately (they will trigger an error).
@@ -5189,218 +5170,320 @@ var escapeReplacements = { '\\': '\\', "'": "'", '"': '"',
                            '_': '_', '~': '~', '.': '.', '-': '-', '!': '!', '$': '$', '&': '&',
                            '(': '(', ')': ')', '*': '*', '+': '+', ',': ',', ';': ';', '=': '=',
                            '/': '/', '?': '?', '#': '#', '@': '@', '%': '%' };
-var illegalUrlChars = /[\x00-\x20<>\\"\{\}\|\^\`]/;
-
-// Different punctuation types.
-var punctuationTypes = { '.': 'dot', ';': 'semicolon', ',': 'comma',
-                         '[': 'bracketopen', ']': 'bracketclose',
-                         '(': 'liststart', ')': 'listend' };
-var fullPredicates = { 'a': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' };
+var illegalIriChars = /[\x00-\x20<>\\"\{\}\|\^\`]/;
 
 // ## Constructor
-function N3Lexer() {
+function N3Lexer(options) {
   if (!(this instanceof N3Lexer))
-    return new N3Lexer();
+    return new N3Lexer(options);
 
-  // Local copies of the patterns perform slightly better.
-  for (var name in patterns)
-    this[name] = patterns[name];
+  // In line mode (N-Triples or N-Quads), only simple features may be parsed
+  if (options && options.lineMode) {
+    // Don't tokenize special literals
+    this._tripleQuotedString = this._number = this._boolean = /$0^/;
+    // Swap the tokenize method for a restricted version
+    var self = this;
+    this._tokenize = this.tokenize;
+    this.tokenize = function (input, callback) {
+      this._tokenize(input, function (error, token) {
+        if (!error && /IRI|prefixed|literal|langcode|type|\.|eof/.test(token.type))
+          callback && callback(error, token);
+        else
+          callback && callback(error || self._syntaxError(token.type, callback = null));
+      });
+    };
+  }
 }
 
 N3Lexer.prototype = {
+  // ## Regular expressions
+  // It's slightly faster to have these as properties than as in-scope variables.
+
+  _iri: /^<((?:[^>\\]|\\[uU])+)>/, // IRI with escape sequences; needs sanity check after unescaping
+  _unescapedIri: /^<([^\x00-\x20<>\\"\{\}\|\^\`]*)>/, // IRI without escape sequences; no unescaping
+  _unescapedString: /^"[^"\\]+"(?=[^"\\])/, // non-empty string without escape sequences
+  _singleQuotedString: /^"[^"\\]*(?:\\.[^"\\]*)*"(?=[^"\\])|^'[^'\\]*(?:\\.[^'\\]*)*'(?=[^'\\])/,
+  _tripleQuotedString: /^""("[^"\\]*(?:(?:\\.|"(?!""))[^"\\]*)*")""|^''('[^'\\]*(?:(?:\\.|'(?!''))[^'\\]*)*')''/,
+  _langcode: /^@([a-z]+(?:-[a-z0-9]+)*)(?=[^a-z0-9\-])/i,
+  _prefix: /^((?:[A-Za-z\xc0-\xd6\xd8-\xf6\xf8-\u02ff\u0370-\u037d\u037f-\u1fff\u200c\u200d\u2070-\u218f\u2c00-\u2fef\u3001-\ud7ff\uf900-\ufdcf\ufdf0-\ufffd]|[\ud800-\udb7f][\udc00-\udfff])(?:\.?[\-0-9A-Z_a-z\xb7\xc0-\xd6\xd8-\xf6\xf8-\u037d\u037f-\u1fff\u200c\u200d\u203f\u2040\u2070-\u218f\u2c00-\u2fef\u3001-\ud7ff\uf900-\ufdcf\ufdf0-\ufffd]|[\ud800-\udb7f][\udc00-\udfff])*)?:(?=[#\s<])/,
+  _prefixed: /^((?:[A-Za-z\xc0-\xd6\xd8-\xf6\xf8-\u02ff\u0370-\u037d\u037f-\u1fff\u200c\u200d\u2070-\u218f\u2c00-\u2fef\u3001-\ud7ff\uf900-\ufdcf\ufdf0-\ufffd]|[\ud800-\udb7f][\udc00-\udfff])(?:\.?[\-0-9A-Z_a-z\xb7\xc0-\xd6\xd8-\xf6\xf8-\u037d\u037f-\u1fff\u200c\u200d\u203f\u2040\u2070-\u218f\u2c00-\u2fef\u3001-\ud7ff\uf900-\ufdcf\ufdf0-\ufffd]|[\ud800-\udb7f][\udc00-\udfff])*)?:((?:(?:[0-:A-Z_a-z\xc0-\xd6\xd8-\xf6\xf8-\u02ff\u0370-\u037d\u037f-\u1fff\u200c\u200d\u2070-\u218f\u2c00-\u2fef\u3001-\ud7ff\uf900-\ufdcf\ufdf0-\ufffd]|[\ud800-\udb7f][\udc00-\udfff]|%[0-9a-fA-F]{2}|\\[!#-\/;=?\-@_~])(?:(?:[\.\-0-:A-Z_a-z\xb7\xc0-\xd6\xd8-\xf6\xf8-\u037d\u037f-\u1fff\u200c\u200d\u203f\u2040\u2070-\u218f\u2c00-\u2fef\u3001-\ud7ff\uf900-\ufdcf\ufdf0-\ufffd]|[\ud800-\udb7f][\udc00-\udfff]|%[0-9a-fA-F]{2}|\\[!#-\/;=?\-@_~])*(?:[\-0-:A-Z_a-z\xb7\xc0-\xd6\xd8-\xf6\xf8-\u037d\u037f-\u1fff\u200c\u200d\u203f\u2040\u2070-\u218f\u2c00-\u2fef\u3001-\ud7ff\uf900-\ufdcf\ufdf0-\ufffd]|[\ud800-\udb7f][\udc00-\udfff]|%[0-9a-fA-F]{2}|\\[!#-\/;=?\-@_~]))?)?)(?=\.?[,;\s#()\[\]\{\}"'<])/,
+  _blank: /^_:((?:[0-9A-Z_a-z\xc0-\xd6\xd8-\xf6\xf8-\u02ff\u0370-\u037d\u037f-\u1fff\u200c\u200d\u2070-\u218f\u2c00-\u2fef\u3001-\ud7ff\uf900-\ufdcf\ufdf0-\ufffd]|[\ud800-\udb7f][\udc00-\udfff])(?:\.?[\-0-9A-Z_a-z\xb7\xc0-\xd6\xd8-\xf6\xf8-\u037d\u037f-\u1fff\u200c\u200d\u203f\u2040\u2070-\u218f\u2c00-\u2fef\u3001-\ud7ff\uf900-\ufdcf\ufdf0-\ufffd]|[\ud800-\udb7f][\udc00-\udfff])*)(?=\.?[,;:\s#()\[\]\{\}"'<])/,
+  _number: /^[\-+]?(?:\d+\.?\d*([eE](?:[\-\+])?\d+)|\d*\.?\d+)(?=[.,;:\s#()\[\]\{\}"'<])/,
+  _boolean: /^(?:true|false)(?=[.,;:\s#()\[\]\{\}"'<])/,
+  _keyword: /^@[a-z]+(?=[\s#<:])/,
+  _sparqlKeyword: /^(?:PREFIX|BASE|GRAPH)(?=[\s#<:])/i,
+  _shortPredicates: /^a(?=\s+|<)/,
+  _newline: /^[ \t]*(?:#[^\n\r]*)?(?:\r\n|\n|\r)[ \t]*/,
+  _whitespace: /^[ \t]+/,
+  _endOfFile: /^(?:#[^\n\r]*)?$/,
+
   // ## Private methods
 
-  // ### `_next` fires the callback with the next token.
-  // Returns a boolean indicating whether a token has been emitted.
-  _next: function (callback) {
-    // Only emit tokens if there's still input left.
-    if (this._input === undefined)
-      return false;
+  // ### `_tokenizeToEnd` tokenizes as for as possible, emitting tokens through the callback.
+  _tokenizeToEnd: function (callback, inputFinished) {
+    // Continue parsing as far as possible; the loop will return eventually.
+    var input = this._input;
+    while (true) {
+      // Count and skip whitespace lines.
+      var whiteSpaceMatch;
+      while (whiteSpaceMatch = this._newline.exec(input))
+        input = input.substr(whiteSpaceMatch[0].length, input.length), this._line++;
+      // Skip whitespace on current line.
+      if (whiteSpaceMatch = this._whitespace.exec(input))
+        input = input.substr(whiteSpaceMatch[0].length, input.length);
 
-    // Count and skip newlines.
-    var match;
-    while (match = this._newline.exec(this._input)) {
-      this._line++;
-      this._input = this._input.substr(match[0].length);
-    }
-
-    // Skip whitespace.
-    if (match = this._whitespace.exec(this._input)) {
-      this._input = this._input.substr(match[0].length);
-    }
-
-    // Create token skeleton.
-    // We initialize all possible properties as strings, so the engine uses one runtime type for all tokens.
-    var token = { line: this._line,
-                  type: '',
-                  value: '',
-                  prefix: ''
-                };
-    var unescaped;
-
-    // Emit the EOF token if we're at the end and reading is complete.
-    if (this._endOfFile.test(this._input)) {
-      // If we're streaming, don't emit EOF yet.
-      if (!this._inputComplete)
-        return false;
-      // Free the input.
-      delete this._input;
-      // Emit EOF.
-      token.type = 'eof';
-      callback(null, token);
-      return true;
-    }
-
-    // Try to find an `explicituri`.
-    if (match = this._explicituri.exec(this._input)) {
-      unescaped = this._unescape(match[1]);
-      if (unescaped === null || illegalUrlChars.test(unescaped))
-        return reportSyntaxError(this);
-      token.type = 'explicituri';
-      token.value = unescaped;
-    }
-    // Try to find a dot.
-    else if (match = this._punctuation.exec(this._input)) {
-      token.type = punctuationTypes[match[0]];
-    }
-    // Try to find a language code.
-    else if (this._prevTokenType === 'literal' && (match = this._langcode.exec(this._input))) {
-      token.type = 'langcode';
-      token.value = match[1];
-    }
-    // Try to find a string literal the fast way.
-    // This only includes non-empty simple quoted literals without escapes.
-    // If streaming, make sure the input is long enough so we don't miss language codes or string types.
-    else if (match = this._fastString.exec(this._input)) {
-      token.type = 'literal';
-      token.value = match[0];
-    }
-    // Try to find any other string literal wrapped in a pair of quotes.
-    else if (match = this._string.exec(this._input)) {
-      unescaped = this._unescape(match[0]);
-      if (unescaped === null)
-        return reportSyntaxError(this);
-      token.type = 'literal';
-      token.value = unescaped.replace(/^'|'$/g, '"');
-    }
-    // Try to find a string literal wrapped in a pair of triple quotes.
-    else if (match = this._tripleQuotedString.exec(this._input)) {
-      unescaped = match[1] || match[2];
-      // Count the newlines and advance line counter.
-      this._line += unescaped.split(/\r\n|\r|\n/).length - 1;
-      unescaped = this._unescape(unescaped);
-      if (unescaped === null)
-        return reportSyntaxError(this);
-      token.type = 'literal';
-      token.value = unescaped.replace(/^'|'$/g, '"');
-    }
-    // Try to find a number.
-    else if (match = this._number.exec(this._input)) {
-      token.type = 'literal';
-      token.value = '"' + match[0] + '"^^<http://www.w3.org/2001/XMLSchema#' +
-                    (match[1] ? 'double>' : (/^[+\-]?\d+$/.test(match[0]) ? 'integer>' : 'decimal>'));
-    }
-    // Try to match a boolean.
-    else if (match = this._boolean.exec(this._input)) {
-      token.type = 'literal';
-      token.value = '"' + match[0] + '"^^<http://www.w3.org/2001/XMLSchema#boolean>';
-    }
-    // Try to find a type.
-    else if (this._prevTokenType === 'literal' && (match = this._type.exec(this._input))) {
-      token.type = 'type';
-      if (!match[2]) {
-        token.value = match[1];
+      // Stop for now if we're at the end.
+      if (this._endOfFile.test(input)) {
+        // If the input is finished, emit EOF.
+        if (inputFinished)
+          callback(input = null, { line: this._line, type: 'eof', value: '', prefix: '' });
+        return this._input = input;
       }
-      else {
-        token.prefix = match[2];
-        token.value = match[3];
+
+      // Look for specific token types based on the first character.
+      var line = this._line, type = '', value = '', prefix = '',
+          firstChar = input[0], match = null, matchLength = 0, unescaped, inconclusive = false;
+      switch (firstChar) {
+      case '^':
+        // Try to match a type.
+        if (input.length === 1) break;
+        else if (input[1] !== '^') return reportSyntaxError(this);
+        this._prevTokenType = '^';
+        // Move to type IRI or prefixed name.
+        input = input.substr(2);
+        if (input[0] !== '<') {
+          inconclusive = true;
+          break;
+        }
+        // Fall through in case the type is an IRI.
+
+      case '<':
+        // Try to find a full IRI without escape sequences.
+        if (match = this._unescapedIri.exec(input)) {
+          type = 'IRI';
+          value = match[1];
+        }
+        // Try to find a full IRI with escape sequences.
+        else if (match = this._iri.exec(input)) {
+          unescaped = this._unescape(match[1]);
+          if (unescaped === null || illegalIriChars.test(unescaped))
+            return reportSyntaxError(this);
+          type = 'IRI';
+          value = unescaped;
+        }
+        break;
+
+      case '_':
+        // Try to find a blank node. Since it can contain (but not end with) a dot,
+        // we always need a non-dot character before deciding it is a prefixed name.
+        // Therefore, try inserting a space if we're at the end of the input.
+        if ((match = this._blank.exec(input)) ||
+            inputFinished && (match = this._blank.exec(input + ' '))) {
+          type = 'prefixed';
+          prefix = '_';
+          value = match[1];
+        }
+        break;
+
+      case '"':
+      case "'":
+        // Try to find a non-empty double-quoted literal without escape sequences.
+        if (match = this._unescapedString.exec(input)) {
+          type = 'literal';
+          value = match[0];
+        }
+        // Try to find any other literal wrapped in a pair of single or double quotes.
+        else if (match = this._singleQuotedString.exec(input)) {
+          unescaped = this._unescape(match[0]);
+          if (unescaped === null)
+            return reportSyntaxError(this);
+          type = 'literal';
+          value = unescaped.replace(/^'|'$/g, '"');
+        }
+        // Try to find a literal wrapped in three pairs of single or double quotes.
+        else if (match = this._tripleQuotedString.exec(input)) {
+          unescaped = match[1] || match[2];
+          // Count the newlines and advance line counter.
+          this._line += unescaped.split(/\r\n|\r|\n/).length - 1;
+          unescaped = this._unescape(unescaped);
+          if (unescaped === null)
+            return reportSyntaxError(this);
+          type = 'literal';
+          value = unescaped.replace(/^'|'$/g, '"');
+        }
+        break;
+
+      case '@':
+        // Try to find a language code.
+        if (this._prevTokenType === 'literal' && (match = this._langcode.exec(input))) {
+          type = 'langcode';
+          value = match[1];
+        }
+        // Try to find a keyword.
+        else if (match = this._keyword.exec(input)) {
+          type = match[0];
+        }
+        break;
+
+      case '.':
+        // Try to find a dot as punctuation.
+        if (input.length === 1 ? inputFinished : (input[1] < '0' || input[1] > '9')) {
+          type = '.';
+          matchLength = 1;
+          break;
+        }
+        // Fall through to numerical case (could be a decimal dot).
+
+      case '0':
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+      case '+':
+      case '-':
+        // Try to find a number.
+        if (match = this._number.exec(input)) {
+          type = 'literal';
+          value = '"' + match[0] + '"^^http://www.w3.org/2001/XMLSchema#' +
+                  (match[1] ? 'double' : (/^[+\-]?\d+$/.test(match[0]) ? 'integer' : 'decimal'));
+        }
+        break;
+
+      case 'B':
+      case 'b':
+      case 'p':
+      case 'P':
+      case 'G':
+      case 'g':
+        // Try to find a SPARQL-style keyword.
+        if (match = this._sparqlKeyword.exec(input))
+          type = match[0].toUpperCase();
+        else
+          inconclusive = true;
+        break;
+
+      case 'f':
+      case 't':
+        // Try to match a boolean.
+        if (match = this._boolean.exec(input)) {
+          type = 'literal';
+          value = '"' + match[0] + '"^^http://www.w3.org/2001/XMLSchema#boolean';
+        }
+        else
+          inconclusive = true;
+        break;
+
+      case 'a':
+        // Try to find an abbreviated predicate.
+        if (match = this._shortPredicates.exec(input)) {
+          type = 'abbreviation';
+          value = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type';
+        }
+        else
+          inconclusive = true;
+        break;
+
+      case ',':
+      case ';':
+      case '[':
+      case ']':
+      case '(':
+      case ')':
+      case '{':
+      case '}':
+        // The next token is punctuation
+        matchLength = 1;
+        type = firstChar;
+        break;
+
+      default:
+        inconclusive = true;
       }
-    }
-    // Try to find a keyword.
-    else if (match = this._keyword.exec(this._input)) {
-      var keyword = match[0];
-      token.type = keyword[0] === '@' ? keyword : keyword.toUpperCase();
-    }
-    // Try to find a prefix.
-    else if ((this._prevTokenType === '@prefix' || this._prevTokenType === 'PREFIX') &&
-             (match = this._prefix.exec(this._input))) {
-      token.type = 'prefix';
-      token.value = match[1] || '';
-    }
-    // Try to find a qname.
-    else if (match = this._qname.exec(this._input)) {
-      unescaped = this._unescape(match[2]);
-      if (unescaped === null)
-        return reportSyntaxError(this);
-      token.type = 'qname';
-      token.prefix = match[1] || '';
-      token.value = unescaped;
-    }
-    // Try to find an abbreviated predicate.
-    else if (match = this._shortPredicates.exec(this._input)) {
-      token.type = 'abbreviation';
-      token.value = fullPredicates[match[0]];
-    }
-    // What if nothing of the above was found?
-    else {
-      // We could be in streaming mode, and then we just wait for more input to arrive.
-      // Otherwise, a syntax error has occurred in the input.
-      // One exception: error on an unaccounted linebreak (= not inside a triple-quoted literal).
-      if (this._inputComplete || (!/^'''|^"""/.test(this._input) && /\n|\r/.test(this._input)))
-        reportSyntaxError(this);
-      return false;
+
+      // Some first characters do not allow an immediate decision, so inspect more.
+      if (inconclusive) {
+        // Try to find a prefix.
+        if ((this._prevTokenType === '@prefix' || this._prevTokenType === 'PREFIX') &&
+            (match = this._prefix.exec(input))) {
+          type = 'prefix';
+          value = match[1] || '';
+        }
+        // Try to find a prefixed name. Since it can contain (but not end with) a dot,
+        // we always need a non-dot character before deciding it is a prefixed name.
+        // Therefore, try inserting a space if we're at the end of the input.
+        else if ((match = this._prefixed.exec(input)) ||
+                 inputFinished && (match = this._prefixed.exec(input + ' '))) {
+          type = 'prefixed';
+          prefix = match[1] || '';
+          value = this._unescape(match[2]);
+        }
+      }
+
+      // A type token is special: it can only be emitted after an IRI or prefixed name is read.
+      if (this._prevTokenType === '^')
+        type = (type === 'IRI' || type === 'prefixed') ? 'type' : '';
+
+      // What if nothing of the above was found?
+      if (!type) {
+        // We could be in streaming mode, and then we just wait for more input to arrive.
+        // Otherwise, a syntax error has occurred in the input.
+        // One exception: error on an unaccounted linebreak (= not inside a triple-quoted literal).
+        if (inputFinished || (!/^'''|^"""/.test(input) && /\n|\r/.test(input)))
+          return reportSyntaxError(this);
+        else
+          return this._input = input;
+      }
+
+      // Emit the parsed token.
+      callback(null, { line: line, type: type, value: value, prefix: prefix });
+      this._prevTokenType = type;
+
+      // Advance to next part to tokenize.
+      input = input.substr(matchLength || match[0].length, input.length);
     }
 
-    // Save the token type for the next iteration.
-    this._prevTokenType = token.type;
-
-    // Advance to next part to tokenize.
-    this._input = this._input.substr(match[0].length);
-
-    // Emit the parsed token.
-    callback(null, token);
-    return true;
-
-    function reportSyntaxError(self) {
-      match = self._nonwhitespace.exec(self._input);
-      delete self._input;
-      callback('Syntax error: unexpected "' + match[0] + '" on line ' + self._line + '.');
-      return false;
-    }
+    // Signals the syntax error through the callback
+    function reportSyntaxError(self) { callback(self._syntaxError(/^\S*/.exec(input)[0])); }
   },
 
-  // ### `unescape` replaces N3 escape codes by their corresponding characters.
+  // ### `_unescape` replaces N3 escape codes by their corresponding characters.
   _unescape: function (item) {
     try {
       return item.replace(escapeSequence, function (sequence, unicode4, unicode8, escapedChar) {
         var charCode;
         if (unicode4) {
           charCode = parseInt(unicode4, 16);
-          if (isNaN(charCode))
-            throw "invalid character code";
-          return String.fromCharCode(charCode);
+          if (isNaN(charCode)) throw new Error(); // can never happen (regex), but helps performance
+          return fromCharCode(charCode);
         }
         else if (unicode8) {
           charCode = parseInt(unicode8, 16);
-          if (isNaN(charCode))
-            throw "invalid character code";
-          if (charCode < 0xFFFF)
-            return String.fromCharCode(charCode);
-          return String.fromCharCode(Math.floor((charCode - 0x10000) / 0x400) + 0xD800) +
-                 String.fromCharCode((charCode - 0x10000) % 0x400 + 0xDC00);
+          if (isNaN(charCode)) throw new Error(); // can never happen (regex), but helps performance
+          if (charCode <= 0xFFFF) return fromCharCode(charCode);
+          return fromCharCode(0xD800 + ((charCode -= 0x10000) / 0x400), 0xDC00 + (charCode & 0x3FF));
         }
         else {
           var replacement = escapeReplacements[escapedChar];
           if (!replacement)
-            throw "invalid escape sequence";
+            throw new Error();
           return replacement;
         }
       });
     }
-    catch (error) {
-      return null;
-    }
+    catch (error) { return null; }
   },
+
+  // ### `_syntaxError` creates a syntax error for the given issue
+  _syntaxError: function (issue) {
+    this._input = null;
+    return new Error('Syntax error: unexpected "' + issue + '" on line ' + this._line + '.');
+  },
+
 
   // ## Public methods
 
@@ -5410,89 +5493,114 @@ N3Lexer.prototype = {
     var self = this;
     this._line = 1;
 
-    // If the input is a string, continuously emit tokens through callback until the end.
-    if (typeof(input) === 'string') {
+    // If the input is a string, continuously emit tokens through the callback until the end.
+    if (typeof input === 'string') {
       this._input = input;
-      this._inputComplete = true;
-      process.nextTick(function () {
-        while (self._next(callback)) {} ;
-      });
+      immediately(function () { self._tokenizeToEnd(callback, true); });
     }
-    // Otherwise, the input must be a stream.
+    // Otherwise, the input will be streamed.
     else {
       this._input = '';
-      this._inputComplete = false;
 
-      // Read strings, not buffers.
-      if (typeof input.setEncoding === 'function')
-        input.setEncoding('utf8');
-
-      // If new data arrives…
-      input.on('data', function (data) {
-        // …add the new data to the buffer
-        self._input += data;
-        // …and parse as far as we can.
-        while (self._next(callback)) {} ;
-      });
-      // If we're at the end of the stream…
-      input.on('end', function () {
-        // …signal completeness…
-        self._inputComplete = true;
-        // …and parse until the end.
-        while (self._next(callback)) {} ;
-      });
+      // If no input was given, it will be streamed through `addChunk` and ended with `end`
+      if (!input || typeof input === 'function') {
+        this.addChunk = addChunk;
+        this.end = end;
+        if (!callback)
+          callback = input;
+      }
+      // Otherwise, the input itself must be a stream
+      else {
+        if (typeof input.setEncoding === 'function')
+          input.setEncoding('utf8');
+        input.on('data', addChunk);
+        input.on('end', end);
+      }
     }
-  }
-};
+
+    // Adds the data chunk to the buffer and parses as far as possible
+    function addChunk(data) {
+      if (self._input !== null) {
+        self._input += data;
+        self._tokenizeToEnd(callback, false);
+      }
+    }
+
+    // Parses until the end
+    function end() {
+      if (self._input !== null) {
+        self._tokenizeToEnd(callback, true);
+      }
+    }
+  }};
 
 // ## Exports
 
+// Export the `N3Lexer` class as a whole.
 
-// **RVInnerN3Parser** parses N3 documents.
+// end of ./node_modules/n3/lib/N3Lexer.js
+// **N3Parser** parses N3 documents.
 
 var RDF_PREFIX = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-    RDF_NIL    = {token: 'uri', value: RDF_PREFIX + 'nil', prefix: null, suffix: null},
-    RDF_FIRST  = {token: 'uri', value: RDF_PREFIX + 'first', prefix: null, suffix: null},
-    RDF_REST   = {token: 'uri', value: RDF_PREFIX + 'rest', prefix: null, suffix: null};
+    RDF_NIL    = RDF_PREFIX + 'nil',
+    RDF_FIRST  = RDF_PREFIX + 'first',
+    RDF_REST   = RDF_PREFIX + 'rest';
 
-var absoluteURI = /^[a-z]+:/,
-    absolutePath = /^\//,
-    hashURI = /^#/,
+var absoluteIRI = /:/,
     documentPart = /[^\/]*$/,
-    rootURI = /^(?:[a-z]+:\/*)?[^\/]*/;
+    rootIRI = /^(?:[^:]+:\/*)?[^\/]*/;
 
-var _undefined, noop = function () {};
+// The next ID for new blank nodes
+var blankNodePrefix = 0, blankNodeCount = 0;
 
 // ## Constructor
-function RVInnerN3Parser(config) {
-  if (!(this instanceof RVInnerN3Parser))
-    return new RVInnerN3Parser(config);
-
-  config = config || {};
-
-  this._lexer = config.lexer || new N3Lexer();
-  this._blankNodes = Object.create(null);
-  this._blankNodeCount = 0;
+function N3Parser(options) {
+  if (!(this instanceof N3Parser))
+    return new N3Parser(options);
   this._tripleStack = [];
-  if(config.baseURI != null)
-    config.documentURI = config.baseURI
-  if (!config.documentURI) {
-    this._baseURI = null;
-    this._baseURIPath = null;
+  this._graph = null;
+
+  // Set the document IRI.
+  options = options || {};
+  if (!options.documentIRI) {
+    this._baseIRI = null;
+    this._baseIRIPath = null;
   }
   else {
-    if(config.documentURI.indexOf("#") !== -1)
-        config.documentURI = config.documentURI.split("#")[0];
-    this._baseURI = config.documentURI;
-    this._baseURIPath = this._baseURI.replace(documentPart, '');
-    this._baseURIRoot = this._baseURI.match(rootURI)[0];
+    if (options.documentIRI.indexOf('#') > 0)
+      throw new Error('Invalid document IRI');
+    this._baseIRI = options.documentIRI;
+    this._baseIRIPath = this._baseIRI.replace(documentPart, '');
+    this._baseIRIRoot = this._baseIRI.match(rootIRI)[0];
   }
+
+  // Set supported features depending on the format.
+  var format = (typeof options.format === 'string') && options.format.match(/\w*$/)[0].toLowerCase(),
+      isTurtle = format === 'turtle', isTriG = format === 'trig',
+      isNTriples = /triple/.test(format), isNQuads = /quad/.test(format),
+      isLineMode = isNTriples || isNQuads;
+  if (!(this._supportsNamedGraphs = !isTurtle))
+    this._readPredicateOrNamedGraph = this._readPredicate;
+  this._supportsQuads = !(isTurtle || isTriG || isNTriples);
+  // Disable relative IRIs in N-Triples or N-Quads mode
+  if (isLineMode) {
+    this._baseIRI = '';
+    this._resolveIRI = function (token) {
+      this._error('Disallowed relative IRI', token);
+      return this._callback = noop, this._subject = null;
+    };
+  }
+  this._lexer = options.lexer || new N3Lexer({ lineMode: isLineMode });
 }
 
-RVInnerN3Parser.prototype = {
-  defaultGraph: null,
-  constructor: RVInnerN3Parser,
+// ## Private class methods
 
+// ### `_resetBlankNodeIds` restarts blank node identification.
+N3Parser._resetBlankNodeIds = function () {
+  blankNodePrefix = blankNodeCount = 0;
+};
+
+N3Parser.prototype = {
   // ## Private methods
 
   // ### `_readInTopContext` reads a token when in the top context.
@@ -5500,6 +5608,9 @@ RVInnerN3Parser.prototype = {
     switch (token.type) {
     // If an EOF token arrives in the top context, signal that we're done.
     case 'eof':
+      if (this._graph !== null)
+        return this._error('Unclosed graph', token);
+      delete this._prefixes._;
       return this._callback(null, null, this._prefixes);
     // It could be a prefix declaration.
     case '@prefix':
@@ -5511,10 +5622,21 @@ RVInnerN3Parser.prototype = {
     // It could be a base declaration.
     case '@base':
       this._sparqlStyle = false;
-      return this._readBaseURI;
+      return this._readBaseIRI;
     case 'BASE':
       this._sparqlStyle = true;
-      return this._readBaseURI;
+      return this._readBaseIRI;
+    // It could be a graph.
+    case '{':
+      if (this._supportsNamedGraphs) {
+        this._graph = '';
+        this._subject = null;
+        return this._readSubject;
+      }
+    case 'GRAPH':
+      if (this._supportsNamedGraphs) {
+        return this._readNamedGraphLabel;
+      }
     // Otherwise, the next token must be a subject.
     default:
       return this._readSubject(token);
@@ -5523,87 +5645,75 @@ RVInnerN3Parser.prototype = {
 
   // ### `_readSubject` reads a triple's subject.
   _readSubject: function (token) {
+    this._predicate = null;
     switch (token.type) {
-    case 'explicituri':
-      if (this._baseURI === null || absoluteURI.test(token.value))
-          this._subject = {token: 'uri', value: token.value, prefix: null, suffix: null};
+    case 'IRI':
+      if (this._baseIRI === null || absoluteIRI.test(token.value))
+        this._subject = token.value;
       else
-
-          this._subject = {token: 'uri', value: this._resolveURI(token.value), prefix: null, suffix: null};
+        this._subject = this._resolveIRI(token);
       break;
-    case 'qname':
-      if (token.prefix === '_') {
-          if(this._blankNodes[token.value] !== undefined) {
-              this._subject = {'blank': this._blankNodes[token.value] };
-          } else {
-              this._subject = {'blank': (this._blankNodes[token.value] = '_:' + this._blankNodeCount++)};
-          }
-      }
-      else {
-        var prefix = this._prefixes[token.prefix];
-        if (prefix === _undefined)
-          return this._error('Undefined prefix "' + token.prefix + ':"', token);
-        this._subject = {token: 'uri', value: prefix + token.value, prefix: null, suffix: null};
-
-      }
+    case 'prefixed':
+      var prefix = this._prefixes[token.prefix];
+      if (prefix === undefined)
+        return this._error('Undefined prefix "' + token.prefix + ':"', token);
+      this._subject = prefix + token.value;
       break;
-    case 'bracketopen':
+    case '[':
       // Start a new triple with a new blank node as subject.
-      this._subject = {'blank': ('_:' + this._blankNodeCount++)};
+      this._subject = '_:b' + blankNodeCount++;
       this._tripleStack.push({ subject: this._subject, predicate: null, object: null, type: 'blank' });
       return this._readBlankNodeHead;
-    case 'liststart':
+    case '(':
       // Start a new list
       this._tripleStack.push({ subject: RDF_NIL, predicate: null, object: null, type: 'list' });
       this._subject = null;
       return this._readListItem;
+    case '}':
+      return this._readPunctuation(token);
     default:
-      return this._error('Unexpected token type "' + token.type, token);
+      return this._error('Expected subject but got ' + token.type, token);
     }
-    this._subjectHasPredicate = false;
-    // The next token must be a predicate.
-    return this._readPredicate;
+    // The next token must be a predicate,
+    // or, if the subject was actually a graph IRI, a named graph.
+    return this._readPredicateOrNamedGraph;
   },
 
   // ### `_readPredicate` reads a triple's predicate.
   _readPredicate: function (token) {
     switch (token.type) {
-    case 'explicituri':
+    case 'IRI':
     case 'abbreviation':
-      if (this._baseURI === null || absoluteURI.test(token.value))
-        this._predicate = {token: 'uri', value: token.value, prefix: null, suffix: null};
-      else {
-        var resolved = 
-        this._predicate = {token: 'uri', value: this._resolveURI(token.value), prefix: null, suffix: null};
-      }
+      if (this._baseIRI === null || absoluteIRI.test(token.value))
+        this._predicate = token.value;
+      else
+        this._predicate = this._resolveIRI(token);
       break;
-    case 'qname':
+    case 'prefixed':
       if (token.prefix === '_') {
         return this._error('Disallowed blank node as predicate', token);
       }
       else {
         var prefix = this._prefixes[token.prefix];
-        if (prefix === _undefined)
+        if (prefix === undefined)
           return this._error('Undefined prefix "' + token.prefix + ':"', token);
-        this._predicate = {token: 'uri', value: prefix + token.value, prefix: null, suffix: null};
+        this._predicate = prefix + token.value;
       }
       break;
-    case 'bracketclose':
+    case '.':
+    case ']':
+    case '}':
       // Expected predicate didn't come, must have been trailing semicolon.
-      return this._readBlankNodeTail(token, true);
-    case 'dot':
-      // A dot is not allowed if the subject did not have a predicate yet
-      if (!this._subjectHasPredicate)
-        return this._error('Unexpected dot', token);
-      // Expected predicate didn't come, must have been trailing semicolon.
-      return this._readPunctuation(token, true);
-    case 'semicolon':
+      if (this._predicate === null)
+        return this._error('Unexpected ' + token.type, token);
+      this._subject = null;
+      return this._readBlankNodeTail(token);
+    case ';':
       // Extra semicolons can be safely ignored
       return this._readPredicate;
     default:
       return this._error('Expected predicate to follow "' + this._subject + '"', token);
     }
-    this._subjectHasPredicate = true;
     // The next token must be an object.
     return this._readObject;
   },
@@ -5611,37 +5721,28 @@ RVInnerN3Parser.prototype = {
   // ### `_readObject` reads a triple's object.
   _readObject: function (token) {
     switch (token.type) {
-    case 'explicituri':
-      if (this._baseURI === null || absoluteURI.test(token.value))
-        this._object = {token: 'uri', value: token.value, prefix: null, suffix: null};
+    case 'IRI':
+      if (this._baseIRI === null || absoluteIRI.test(token.value))
+        this._object = token.value;
       else
-        this._object = {token: 'uri', value: this._resolveURI(token.value), prefix: null, suffix: null};
+        this._object = this._resolveIRI(token);
       break;
-    case 'qname':
-      if (token.prefix === '_') {
-          if(this._blankNodes[token.value] !== undefined) {
-              this._object = {'blank': this._blankNodes[token.value] };
-          } else {
-              this._object = {'blank': (this._blankNodes[token.value] = '_:' + this._blankNodeCount++)};
-          }
-      }
-      else {
-        var prefix = this._prefixes[token.prefix];
-        if (prefix === _undefined)
-          return this._error('Undefined prefix "' + token.prefix + ':"', token);
-        this._object = {token: 'uri', value: prefix + token.value, prefix: null, suffix: null};
-      }
+    case 'prefixed':
+      var prefix = this._prefixes[token.prefix];
+      if (prefix === undefined)
+        return this._error('Undefined prefix "' + token.prefix + ':"', token);
+      this._object = prefix + token.value;
       break;
     case 'literal':
-      this._object = {'literal': token.value};
+      this._object = token.value;
       return this._readDataTypeOrLang;
-    case 'bracketopen':
+    case '[':
       // Start a new triple with a new blank node as subject.
-      var blank = {'blank': ('_:' + this._blankNodeCount++)};
+      var blank = '_:b' + blankNodeCount++;
       this._tripleStack.push({ subject: this._subject, predicate: this._predicate, object: blank, type: 'blank' });
       this._subject = blank;
       return this._readBlankNodeHead;
-    case 'liststart':
+    case '(':
       // Start a new list
       this._tripleStack.push({ subject: this._subject, predicate: this._predicate, object: RDF_NIL, type: 'list' });
       this._subject = null;
@@ -5652,25 +5753,41 @@ RVInnerN3Parser.prototype = {
     return this._getTripleEndReader();
   },
 
+  // ### `_readPredicateOrNamedGraph` reads a triple's predicate, or a named graph.
+  _readPredicateOrNamedGraph: function (token) {
+    return token.type === '{' ? this._readGraph(token) : this._readPredicate(token);
+  },
+
+  // ### `_readGraph` reads a graph.
+  _readGraph: function (token) {
+    if (token.type !== '{')
+      return this._error('Expected graph but got ' + token.type, token);
+    // The "subject" we read is actually the GRAPH's label
+    this._graph = this._subject, this._subject = null;
+    return this._readSubject;
+  },
+
   // ### `_readBlankNodeHead` reads the head of a blank node.
   _readBlankNodeHead: function (token) {
-    if (token.type === 'bracketclose')
-      return this._readBlankNodeTail(token, true);
-    else
-      return this._readPredicate(token);
+    if (token.type === ']') {
+      this._subject = null;
+      return this._readBlankNodeTail(token);
+    }
+    this._predicate = null;
+    return this._readPredicate(token);
   },
 
   // ### `_readBlankNodeTail` reads the end of a blank node.
-  _readBlankNodeTail: function (token, empty) {
-    if (token.type !== 'bracketclose')
+  _readBlankNodeTail: function (token) {
+    if (token.type !== ']')
       return this._readPunctuation(token);
 
     // Store blank node triple.
-    if (empty !== true)
-      this._callback(null, { subject: this._subject,
+    if (this._subject !== null)
+      this._callback(null, { subject:   this._subject,
                              predicate: this._predicate,
-                             object: this._object,
-                             graph: RVInnerN3Parser.prototype.defaultGraph });
+                             object:    this._object,
+                             graph:     this._graph || '' });
 
     // Restore parent triple that contains the blank node.
     var triple = this._tripleStack.pop();
@@ -5683,7 +5800,8 @@ RVInnerN3Parser.prototype = {
       return this._getTripleEndReader();
     }
     // The blank node was the subject, so continue reading the predicate.
-    return this._readPredicate;
+    // If the blank node didn't contain any predicates, it could also be the label of a named graph.
+    return this._predicate !== null ? this._readPredicate : this._readPredicateOrNamedGraph;
   },
 
   // ### `_readDataTypeOrLang` reads an _optional_ data type or language.
@@ -5692,29 +5810,21 @@ RVInnerN3Parser.prototype = {
     case 'type':
       var value;
       if (token.prefix === '') {
-        value = token.value;
+        if (this._baseIRI === null || absoluteIRI.test(token.value))
+          value = token.value;
+        else
+          value = this._resolveIRI(token);
       }
       else {
         var prefix = this._prefixes[token.prefix];
-        if (prefix === _undefined)
+        if (prefix === undefined)
           return this._error('Undefined prefix "' + token.prefix + ':"', token);
         value = prefix + token.value;
       }
-      if(this._object.literal) {
-        this._object.literal += '^^<' + value + '>';
-      } else {
-        this._object += '^^<' + value + '>';
-        this._object = {literal: this._object};
-      }
-
+      this._object += '^^' + value;
       return this._getTripleEndReader();
     case 'langcode':
-        if(this._object.literal) {
-            this._object.literal += '@' + token.value.toLowerCase();
-        } else {
-            this._object += '@' + token.value.toLowerCase();
-            this._object = {literal: this._object};
-        }
+      this._object += '@' + token.value.toLowerCase();
       return this._getTripleEndReader();
     default:
       return this._getTripleEndReader().call(this, token);
@@ -5731,56 +5841,46 @@ RVInnerN3Parser.prototype = {
         next = this._readListItem;    // The next function to execute.
 
     switch (token.type) {
-    case 'explicituri':
-      item = {'token': 'uri', 'value': token.value, 'prefix': null, 'suffix': null};
+    case 'IRI':
+      item = token.value;
       break;
-    case 'qname':
-      if (token.prefix === '_') {
-          if(this._blankNodes[token.value] !== undefined) {
-              item = {'blank': this._blankNodes[token.value] };
-          } else {
-              tiem = {'blank': (this._blankNodes[token.value] = '_:' + this._blankNodeCount++)};
-          }
-      }
-      else {
-        var prefix = this._prefixes[token.prefix];
-        if (prefix === _undefined)
-          return this._error('Undefined prefix "' + token.prefix + ':"', token);
-          item = {'token': 'uri', 'value': prefix + token.value, 'prefix': null, 'suffix': null};
-      }
+    case 'prefixed':
+      var prefix = this._prefixes[token.prefix];
+      if (prefix === undefined)
+        return this._error('Undefined prefix "' + token.prefix + ':"', token);
+      item = prefix + token.value;
       break;
     case 'literal':
-      item = {'literal': token.value };
+      item = token.value;
       next = this._readDataTypeOrLang;
       break;
-    case 'bracketopen':
+    case '[':
       // Stack the current list triple and start a new triple with a blank node as subject.
-      itemHead = {'blank': '_:' + this._blankNodeCount++ };
-      item     = {'blank': '_:' + this._blankNodeCount++ };
-
+      itemHead = '_:b' + blankNodeCount++;
+      item     = '_:b' + blankNodeCount++;
       stack.push({ subject: itemHead, predicate: RDF_FIRST, object: item, type: 'blank' });
       this._subject = item;
       next = this._readBlankNodeHead;
       break;
-    case 'liststart':
+    case '(':
       // Stack the current list triple and start a new list
-      itemHead = {'blank': '_:' + this._blankNodeCount++};
+      itemHead = '_:b' + blankNodeCount++;
       stack.push({ subject: itemHead, predicate: RDF_FIRST, object: RDF_NIL, type: 'list' });
       this._subject = null;
       next = this._readListItem;
       break;
-    case 'listend':
+    case ')':
       // Restore the parent triple.
       stack.pop();
       // If this list is contained within a parent list, return the membership triple here.
-      // This will be `<parent list elemen>t rdf:first <this list>.`.
+      // This will be `<parent list element> rdf:first <this list>.`.
       if (stack.length !== 0 && stack[stack.length - 1].type === 'list')
-        this._callback(null, { subject: parentTriple.subject,
+        this._callback(null, { subject:   parentTriple.subject,
                                predicate: parentTriple.predicate,
-                               object: parentTriple.object,
-                               graph: RVInnerN3Parser.prototype.defaultGraph });
+                               object:    parentTriple.object,
+                               graph:     this._graph || '' });
       // Restore the parent triple's subject.
-      this._subject = (typeof(parentTriple.subject) === 'string' ? {'token': 'uri', 'value': parentTriple.subject, 'prefix': null, 'suffix': null } : parentTriple.subject);
+      this._subject = parentTriple.subject;
       // Was this list in the parent triple's subject?
       if (parentTriple.predicate === null) {
         // The next token is the predicate.
@@ -5792,9 +5892,8 @@ RVInnerN3Parser.prototype = {
       // The list was in the parent triple's object.
       else {
         // Restore the parent triple's predicate and object as well.
-        this._predicate = (typeof(parentTriple.predicate) === 'string' ? {'token': 'uri', 'value': parentTriple.predicate, 'prefix': null, 'suffix': null } : parentTriple.predicate); 
-        this._object = (typeof(parentTriple.object) === 'string' ? {'token': 'uri', 'value': parentTriple.object, 'prefix': null, 'suffix': null } : parentTriple.object);
-
+        this._predicate = parentTriple.predicate;
+        this._object = parentTriple.object;
         next = this._getTripleEndReader();
         // Skip writing the list tail if this was an empty list.
         if (parentTriple.object === RDF_NIL)
@@ -5809,7 +5908,7 @@ RVInnerN3Parser.prototype = {
 
      // Create a new blank node if no item head was assigned yet.
     if (itemHead === null)
-      this._subject = itemHead = {'blank': '_:' + this._blankNodeCount++};
+      this._subject = itemHead = '_:b' + blankNodeCount++;
 
     // Is this the first element of the list?
     if (prevItemHead === null) {
@@ -5821,46 +5920,80 @@ RVInnerN3Parser.prototype = {
     }
     else {
       // The rest of the list is in the current head.
-      this._callback(null, { subject: prevItemHead,
+      this._callback(null, { subject:   prevItemHead,
                              predicate: RDF_REST,
-                             object: itemHead,
-                             graph: RVInnerN3Parser.prototype.defaultGraph });
+                             object:    itemHead,
+                             graph:     this._graph || '' });
     }
     // Add the item's value.
     if (item !== null)
-      this._callback(null, { subject: itemHead,
+      this._callback(null, { subject:   itemHead,
                              predicate: RDF_FIRST,
-                             object: item,
-                             graph: RVInnerN3Parser.prototype.defaultGraph });
+                             object:    item,
+                             graph:     this._graph || '' });
     return next;
   },
 
   // ### `_readPunctuation` reads punctuation between triples or triple parts.
-  _readPunctuation: function (token, empty) {
-    var next;
+  _readPunctuation: function (token) {
+    var next, subject = this._subject, graph = this._graph;
     switch (token.type) {
+    // A closing brace ends a graph
+    case '}':
+      if (this._graph === null)
+        return this._error('Unexpected graph closing', token);
+      this._graph = null;
     // A dot just ends the statement, without sharing anything with the next.
-    case 'dot':
+    case '.':
+      this._subject = null;
       next = this._readInTopContext;
       break;
     // Semicolon means the subject is shared; predicate and object are different.
-    case 'semicolon':
+    case ';':
       next = this._readPredicate;
       break;
     // Comma means both the subject and predicate are shared; the object is different.
-    case 'comma':
+    case ',':
       next = this._readObject;
       break;
+    // An IRI means this is a quad (only allowed if not already inside a graph).
+    case 'IRI':
+      if (this._supportsQuads && this._graph === null) {
+        if (this._baseIRI === null || absoluteIRI.test(token.value))
+          graph = token.value;
+        else
+          graph = this._resolveIRI(token);
+        subject = this._subject;
+        next = this._readQuadPunctuation;
+        break;
+      }
+    // An prefixed name means this is a quad (only allowed if not already inside a graph).
+    case 'prefixed':
+      if (this._supportsQuads && this._graph === null) {
+        var prefix = this._prefixes[token.prefix];
+        if (prefix === undefined)
+          return this._error('Undefined prefix "' + token.prefix + ':"', token);
+        graph = prefix + token.value;
+        next = this._readQuadPunctuation;
+        break;
+      }
     default:
       return this._error('Expected punctuation to follow "' + this._object + '"', token);
     }
     // A triple has been completed now, so return it.
-    if (!empty)
-      this._callback(null, { subject: this._subject,
+    if (subject !== null)
+      this._callback(null, { subject:   subject,
                              predicate: this._predicate,
-                             object: this._object,
-                             graph: RVInnerN3Parser.prototype.defaultGraph });
+                             object:    this._object,
+                             graph:     graph || '' });
     return next;
+  },
+
+  // ### `_readQuadPunctuation` reads punctuation after a quad.
+  _readQuadPunctuation: function (token) {
+    if (token.type !== '.')
+      return this._error('Expected dot to follow quad', token);
+    return this._readInTopContext;
   },
 
   // ### `_readPrefix` reads the prefix of a prefix declaration.
@@ -5868,34 +6001,57 @@ RVInnerN3Parser.prototype = {
     if (token.type !== 'prefix')
       return this._error('Expected prefix to follow @prefix', token);
     this._prefix = token.value;
-    return this._readPrefixURI;
+    return this._readPrefixIRI;
   },
 
-  // ### `_readPrefixURI` reads the URI of a prefix declaration.
-  _readPrefixURI: function (token) {
-    if (token.type !== 'explicituri')
-      return this._error('Expected explicituri to follow prefix "' + this.prefix + '"', token);
-    var prefixURI;
-    if (this._baseURI === null || absoluteURI.test(token.value))
-      prefixURI = token.value;
+  // ### `_readPrefixIRI` reads the IRI of a prefix declaration.
+  _readPrefixIRI: function (token) {
+    if (token.type !== 'IRI')
+      return this._error('Expected IRI to follow prefix "' + this._prefix + ':"', token);
+    var prefixIRI;
+    if (this._baseIRI === null || absoluteIRI.test(token.value))
+      prefixIRI = token.value;
     else
-      prefixURI = this._resolveURI(token.value);
-    this._prefixes[this._prefix] = prefixURI;
-    this._prefixCallback(this._prefix, prefixURI);
+      prefixIRI = this._resolveIRI(token);
+    this._prefixes[this._prefix] = prefixIRI;
+    this._prefixCallback(this._prefix, prefixIRI);
     return this._readDeclarationPunctuation;
   },
 
-  // ### `_readBaseURI` reads the URI of a base declaration.
-  _readBaseURI: function (token) {
-    if (token.type !== 'explicituri')
-      return this._error('Expected explicituri to follow base declaration', token);
-    if (this._baseURI === null || absoluteURI.test(token.value))
-      this._baseURI = token.value;
+  // ### `_readBaseIRI` reads the IRI of a base declaration.
+  _readBaseIRI: function (token) {
+    if (token.type !== 'IRI')
+      return this._error('Expected IRI to follow base declaration', token);
+    if (token.value.indexOf('#') > 0)
+      return this._error('Invalid base IRI', token);
+    if (this._baseIRI === null || absoluteIRI.test(token.value))
+      this._baseIRI = token.value;
     else
-      this._baseURI = this._resolveURI(token.value);
-    this._baseURIPath = this._baseURI.replace(documentPart, '');
-    this._baseURIRoot = this._baseURI.match(rootURI)[0];
+      this._baseIRI = this._resolveIRI(token);
+    this._baseIRIPath = this._baseIRI.replace(documentPart, '');
+    this._baseIRIRoot = this._baseIRI.match(rootIRI)[0];
     return this._readDeclarationPunctuation;
+  },
+
+  // ### `_readNamedGraphLabel` reads the label of a named graph.
+  _readNamedGraphLabel: function (token) {
+    switch (token.type) {
+    case 'IRI':
+    case 'prefixed':
+      return this._readSubject(token), this._readGraph;
+    case '[':
+      return this._readNamedGraphBlankLabel;
+    default:
+      return this._error('Invalid graph label', token);
+    }
+  },
+
+  // ### `_readNamedGraphLabel` reads a blank node label of a named graph.
+  _readNamedGraphBlankLabel: function (token) {
+    if (token.type !== ']')
+      return this._error('Invalid graph label', token);
+    this._subject = '_:b' + blankNodeCount++;
+    return this._readGraph;
   },
 
   // ### `_readDeclarationPunctuation` reads the punctuation of a declaration.
@@ -5904,7 +6060,7 @@ RVInnerN3Parser.prototype = {
     if (this._sparqlStyle)
       return this._readInTopContext(token);
 
-    if (token.type !== 'dot')
+    if (token.type !== '.')
       return this._error('Expected declaration to end with a dot', token);
     return this._readInTopContext;
   },
@@ -5925,592 +6081,126 @@ RVInnerN3Parser.prototype = {
 
   // ### `_error` emits an error message through the callback.
   _error: function (message, token) {
-    this._callback(message + ' at line ' + token.line + '.');
+    this._callback(new Error(message + ' at line ' + token.line + '.'));
   },
 
-  // ### `_resolveURI` resolves a URI against a base path
-  _resolveURI: function (uri) {
-    if (hashURI.test(uri))
-      return this._baseURI + uri;
-    if (absolutePath.test(uri))
-      return this._baseURIRoot + uri;
-    return this._baseURIPath + uri;
+  // ### `_resolveIRI` resolves an IRI token against the base path
+  _resolveIRI: function (token) {
+    var iri = token.value;
+    switch (iri[0]) {
+    // An empty relative IRI indicates the base IRI
+    case undefined:
+      return this._baseIRI;
+    // Resolve relative fragment IRIs against the base IRI
+    case '#':
+      return this._baseIRI     + iri;
+    // Resolve relative query string IRIs by replacing the query string
+    case '?':
+      return this._baseIRI.replace(/(?:\?.*)?$/, iri);
+    // Resolve root relative IRIs at the root of the base IRI
+    case '/':
+      return this._baseIRIRoot + iri;
+    // Resolve all other IRIs at the base IRI's path
+    default:
+      return this._baseIRIPath + iri;
+    }
   },
 
   // ## Public methods
 
   // ### `parse` parses the N3 input and emits each parsed triple through the callback.
-  parse: function (input, tripleCallback, prefixCalback) {
-    var self = this;
-    // Initialize prefix declarations.
-    this._prefixes = {};
+  parse: function (input, tripleCallback, prefixCallback) {
+    // The read callback is the next function to be executed when a token arrives.
+    // We start reading in the top context.
+    this._readCallback = this._readInTopContext;
+    this._prefixes = Object.create(null);
+    this._prefixes._ = '_:b' + blankNodePrefix++ + '_';
+
+    // If the input argument is not given, shift parameters
+    if (typeof input === 'function')
+      prefixCallback = tripleCallback, tripleCallback = input, input = null;
+
     // Set the triple and prefix callbacks.
     this._callback = tripleCallback || noop;
-    this._prefixCallback = prefixCalback || noop;
-    // The read callback is the next function to be executed when a token arrives.
-    // We start reading in the top context.
-    this._readCallback = this._readInTopContext;
+    this._prefixCallback = prefixCallback || noop;
+
     // Execute the read callback when a token arrives.
-    this._lexer.tokenize(input, function (error, token) {
-      if (self._readCallback !== _undefined) {
-        if (error !== null)
-          self._callback(error);
-        else
-          self._readCallback = self._readCallback(token);
-      }
-    });
-  }
-};
-
-/*
-var RDF_PREFIX = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-    RDF_NIL    = {token: 'uri', value: RDF_PREFIX + 'nil', prefix: null, suffix: null},
-    RDF_FIRST  = {token: 'uri', value: RDF_PREFIX + 'first', prefix: null, suffix: null},
-    RDF_REST   = {token: 'uri', value: RDF_PREFIX + 'rest', prefix: null, suffix: null};
-
-var absoluteURI = /^[a-z]+:/;
-var hashURI = /^#/;
-var documentPart = /[^\/]*$/;
-
-var _undefined;
-
-// ## Constructor
-function RVInnerN3Parser(config) {
-  config = config || {};
-
-  // We use a dummy constructor to enable construction without `new`.
-  function Constructor() {}
-  Constructor.prototype = RVInnerN3Parser.prototype;
-
-  // Initialize the new `RVInnerN3Parser`.
-  var n3Parser = new Constructor();
-  n3Parser._lexer = config.lexer || new N3Lexer();
-  n3Parser._blankNodes = Object.create(null);
-  n3Parser._blankNodeCount = 0;
-  n3Parser._tripleStack = [];
-  if (!config.documentURI) {
-    n3Parser._baseURI = n3Parser._documentURI = null;
-    n3Parser._baseURIROOT = n3Parser._documentURIRoot = null;
-  }
-  else {
-    n3Parser._baseURI = n3Parser._documentURI = config.documentURI;
-    n3Parser._baseURIRoot = n3Parser._documentURIRoot = config.documentURI.replace(documentPart, '');
-  }
-
-  // Return the new `RVInnerN3Parser`.
-  return n3Parser;
-}
-
-RVInnerN3Parser.prototype = {
-  defaultGraph: null,
-  constructor: RVInnerN3Parser,
-
-  // ## Private methods
-
-  // ### `_readInTopContext` reads a token when in the top context.
-  _readInTopContext: function (token) {
-    switch (token.type) {
-    // If an EOF token arrives in the top context, signal that we're done.
-    case 'eof':
-      return this._callback(null, null);
-    // It could be a prefix declaration.
-    case '@prefix':
-      this._sparqlStyle = false;
-      return this._readPrefix;
-    case 'PREFIX':
-      this._sparqlStyle = true;
-      return this._readPrefix;
-    // It could be a base declaration.
-    case '@base':
-      this._sparqlStyle = false;
-      return this._readBaseURI;
-    case 'BASE':
-      this._sparqlStyle = true;
-      return this._readBaseURI;
-    // Otherwise, the next token must be a subject.
-    default:
-      return this._readSubject(token);
-    }
-  },
-
-  // ### `_readSubject` reads a triple's subject.
-  _readSubject: function (token) {
-    switch (token.type) {
-    case 'explicituri':
-      if (this._baseURI === null || absoluteURI.test(token.value))
-          this._subject = {token: 'uri', value: token.value, prefix: null, suffix: null};
-      else
-          this._subject = {token: 'uri', value: (hashURI.test(token.value) ? this._baseURI : this._baseURIRoot) + token.value, prefix: null, suffix: null};
-      break;
-    case 'qname':
-      if (token.prefix === '_') {
-          if(this._blankNodes[token.value] !== undefined) {
-              this._subject = {'blank': this._blankNodes[token.value] };
-          } else {
-              this._subject = {'blank': (this._blankNodes[token.value] = '_:' + this._blankNodeCount++)};
-          }
-      }
-      else {
-        var prefix = this._prefixes[token.prefix];
-        if (prefix === _undefined)
-          return this._error('Undefined prefix "' + token.prefix + ':"', token);
-        this._subject = {token: 'uri', value: prefix + token.value, prefix: null, suffix: null};
-      }
-      break;
-    case 'bracketopen':
-      // Start a new triple with a new blank node as subject.
-      this._subject = {'blank': ('_:' + this._blankNodeCount++)};
-      this._tripleStack.push({ subject: this._subject, predicate: null, object: null, type: 'blank' });
-      return this._readBlankNodeHead;
-    case 'liststart':
-      // Start a new list
-      this._tripleStack.push({ subject: RDF_NIL, predicate: null, object: null, type: 'list' });
-      this._subject = null;
-      return this._readListItem;
-    default:
-      return this._error('Unexpected token type "' + token.type, token);
-    }
-    this._subjectHasPredicate = false;
-    // The next token must be a predicate.
-    return this._readPredicate;
-  },
-
-  // ### `_readPredicate` reads a triple's predicate.
-  _readPredicate: function (token) {
-    switch (token.type) {
-    case 'explicituri':
-    case 'abbreviation':
-      if (this._baseURI === null || absoluteURI.test(token.value))
-        this._predicate = {token: 'uri', value: token.value, prefix: null, suffix: null};
-      else
-        this._predicate = {token: 'uri', value: (hashURI.test(token.value) ? this._baseURI : this._baseURIRoot) + token.value, prefix: null, suffix: null};
-      break;
-    case 'qname':
-      if (token.prefix === '_') {
-        return this._error('Disallowed blank node as predicate', token);
-      }
-      else {
-        var prefix = this._prefixes[token.prefix];
-        if (prefix === _undefined)
-          return this._error('Undefined prefix "' + token.prefix + ':"', token);
-        this._predicate = {token: 'uri', value: prefix + token.value, prefix: null, suffix: null};
-      }
-      break;
-    case 'bracketclose':
-      // Expected predicate didn't come, must have been trailing semicolon.
-      return this._readBlankNodeTail(token, true);
-    case 'dot':
-      // A dot is not allowed if the subject did not have a predicate yet
-      if (!this._subjectHasPredicate)
-        return this._error('Unexpected dot', token);
-      // Expected predicate didn't come, must have been trailing semicolon.
-      return this._readPunctuation(token, true);
-    case 'semicolon':
-      // Extra semicolons can be safely ignored
-      return this._readPredicate;
-    default:
-      return this._error('Expected predicate to follow "' + this._subject + '"', token);
-    }
-    this._subjectHasPredicate = true;
-    // The next token must be an object.
-    return this._readObject;
-  },
-
-  // ### `_readObject` reads a triple's object.
-  _readObject: function (token) {
-    switch (token.type) {
-    case 'explicituri':
-      if (this._baseURI === null || absoluteURI.test(token.value))
-        this._object = {token: 'uri', value: token.value, prefix: null, suffix: null};
-      else
-        this._object = {token: 'uri', value: (hashURI.test(token.value) ? this._baseURI : this._baseURIRoot) + token.value, prefix: null, suffix: null};
-      break;
-    case 'qname':
-      if (token.prefix === '_') {
-          if(this._blankNodes[token.value] !== undefined) {
-              this._object = {'blank': this._blankNodes[token.value] };
-          } else {
-              this._object = {'blank': (this._blankNodes[token.value] = '_:' + this._blankNodeCount++)};
-          }
-      }
-      else {
-        var prefix = this._prefixes[token.prefix];
-        if (prefix === _undefined)
-          return this._error('Undefined prefix "' + token.prefix + ':"', token);
-        this._object = {token: 'uri', value: prefix + token.value, prefix: null, suffix: null};
-      }
-      break;
-    case 'literal':
-        this._object = {'literal': token.value};
-      return this._readDataTypeOrLang;
-    case 'bracketopen':
-      // Start a new triple with a new blank node as subject.
-      var blank = {'blank': '_:' + this._blankNodeCount++};
-      this._tripleStack.push({ subject: this._subject, predicate: this._predicate, object: blank, type: 'blank' });
-      this._subject = blank;
-      return this._readBlankNodeHead;
-    case 'liststart':
-      // Start a new list
-      this._tripleStack.push({ subject: this._subject, predicate: this._predicate, object: RDF_NIL, type: 'list' });
-      this._subject = null;
-      return this._readListItem;
-    default:
-      return this._error('Expected object to follow "' + this._predicate + '"', token);
-    }
-    return this._getNextReader();
-  },
-
-  // ### `_readBlankNodeHead` reads the head of a blank node.
-  _readBlankNodeHead: function (token) {
-    if (token.type === 'bracketclose')
-      return this._readBlankNodeTail(token, true);
-    else
-      return this._readPredicate(token);
-  },
-
-  // ### `_readBlankNodeTail` reads the end of a blank node.
-  _readBlankNodeTail: function (token, empty) {
-    if (token.type !== 'bracketclose')
-      return this._readPunctuation(token);
-
-    // Store blank node triple.
-    if (empty !== true)
-      this._callback(null, { subject: this._subject,
-                             predicate: this._predicate,
-                             object: this._object,
-                             graph: RVInnerN3Parser.prototype.defaultGraph });
-
-    // Restore parent triple that contains the blank node.
-    var triple = this._tripleStack.pop();
-    this._subject = triple.subject;
-    // Was the blank node the object?
-    if (triple.object !== null) {
-      // Restore predicate and object as well, and continue by reading punctuation.
-      this._predicate = triple.predicate;
-      this._object = triple.object;
-      return this._getNextReader();
-    }
-    // The blank node was the subject, so continue reading the predicate.
-    return this._readPredicate;
-  },
-
-  // ### `_readDataTypeOrLang` reads an _optional_ data type or language.
-  _readDataTypeOrLang: function (token) {
-    switch (token.type) {
-    case 'type':
-      var value;
-      if (token.prefix === '') {
-        value = token.value;
-      }
-      else {
-        var prefix = this._prefixes[token.prefix];
-        if (prefix === _undefined)
-          return this._error('Undefined prefix "' + token.prefix + ':"', token);
-        value = prefix + token.value;
-      }
-      if(this._object.literal) {
-        this._object.literal += '^^<' + value + '>';
-      } else {
-        this._object += '^^<' + value + '>';
-        this._object = {literal: this._object};
-      }
-      return this._readPunctuation;
-    case 'langcode':
-        if(this._object.literal) {
-            this._object.literal += '@' + token.value.toLowerCase();
-        } else {
-            this._object += '@' + token.value.toLowerCase();
-            this._object = {literal: this._object};
-        }
-      return this._getNextReader();
-    default:
-      return this._getNextReader().call(this, token);
-    }
-  },
-
-  // ### `_readListItem` reads items from a list.
-  _readListItem: function (token) {
-    var item = null,                  // The actual list item.
-        itemHead = null,              // The head of the rdf:first predicate.
-        prevItemHead = this._subject, // The head of the previous rdf:first predicate.
-        stack = this._tripleStack,    // The stack of triples part of recursion (lists, blanks, etc.).
-        parentTriple = stack[stack.length - 1], // The triple containing the current list.
-        next = this._readListItem;    // The next function to execute.
-
-    switch (token.type) {
-    case 'explicituri':
-      item = {'token': 'uri', 'value': token.value, 'prefix': null, 'suffix': null};
-      break;
-    case 'qname':
-      if (token.prefix === '_') {
-        item = this._blankNodes[token.value] ||
-              (this._blankNodes[token.value] = {'blank': '_:' + this._blankNodeCount++});
-      }
-      else {
-        var prefix = this._prefixes[token.prefix];
-        if (prefix === _undefined)
-          return this._error('Undefined prefix "' + token.prefix + ':"', token);
-          item = {'token': 'uri', 'value': prefix + token.value, 'prefix': null, 'suffix': null};
-      }
-      break;
-    case 'literal':
-      item = {'literal': token.value };
-      next = this._readDataTypeOrLang;
-      break;
-    case 'bracketopen':
-      // Stack the current list triple and start a new triple with a blank node as subject.
-      itemHead = {'blank': '_:' + this._blankNodeCount++ };
-      item     = {'blank': '_:' + this._blankNodeCount++ };
-      stack.push({ subject: itemHead, predicate: RDF_FIRST, object: item, type: 'blank' });
-      this._subject = item;
-      next = this._readBlankNodeHead;
-      break;
-    case 'liststart':
-      // Stack the current list triple and start a new list
-      itemHead = {'blank': '_:' + this._blankNodeCount++};
-      stack.push({ subject: itemHead, predicate: RDF_FIRST, object: RDF_NIL, type: 'list' });
-      this._subject = null;
-      next = this._readListItem;
-      break;
-    case 'listend':
-      // Restore the parent triple.
-      stack.pop();
-      // If this list is contained within a parent list, return the membership triple here.
-      // This will be `<parent list elemen>t rdf:first <this list>.`.
-      if (stack.length !== 0 && stack[stack.length - 1].type === 'list')
-        this._callback(null, { subject: parentTriple.subject,
-                               predicate: parentTriple.predicate,
-                               object: parentTriple.object,
-                               graph: RVInnerN3Parser.prototype.defaultGraph });
-      // Restore the parent triple's subject.
-      this._subject = (typeof(parentTriple.subject) === 'string' ? {'token': 'uri', 'value': parentTriple.subject, 'prefix': null, 'suffix': null } : parentTriple.subject);
-      // Was this list in the parent triple's subject?
-      if (parentTriple.predicate === null) {
-        // The next token is the predicate.
-        next = this._readPredicate;
-        // Skip writing the list tail if this was an empty list.
-        if (parentTriple.subject === RDF_NIL)
-          return next;
-      }
-      // The list was in the parent triple's object.
-      else {
-        // Restore the parent triple's predicate and object as well.
-        this._predicate = (typeof(parentTriple.predicate) === 'string' ? {'token': 'uri', 'value': parentTriple.predicate, 'prefix': null, 'suffix': null } : parentTriple.predicate); 
-        this._object = (typeof(parentTriple.object) === 'string' ? {'token': 'uri', 'value': parentTriple.object, 'prefix': null, 'suffix': null } : parentTriple.object);
-        next = this._getNextReader();
-        // Skip writing the list tail if this was an empty list.
-        if (parentTriple.object === RDF_NIL)
-          return next;
-      }
-      // Close the list by making the item head nil.
-      itemHead = RDF_NIL;
-      break;
-    default:
-      return this._error('Expected list item instead of "' + token.type + '"', token);
-    }
-
-     // Create a new blank node if no item head was assigned yet.
-    if (itemHead === null)
-      this._subject = itemHead = {'blank': '_:' + this._blankNodeCount++};
-
-    // Is this the first element of the list?
-    if (prevItemHead === null) {
-      // This list is either the object or the subject.
-      if (parentTriple.object === RDF_NIL)
-        parentTriple.object = itemHead;
-      else
-        parentTriple.subject = itemHead;
-    }
-    else {
-      // The rest of the list is in the current head.
-      this._callback(null, { subject: prevItemHead,
-                             predicate: RDF_REST,
-                             object: itemHead,
-                             graph: RVInnerN3Parser.prototype.defaultGraph });
-    }
-    // Add the item's value.
-    if (item !== null)
-      this._callback(null, { subject: itemHead,
-                             predicate: RDF_FIRST,
-                             object: item,
-                             graph: RVInnerN3Parser.prototype.defaultGraph });
-    return next;
-  },
-
-  // ### `_readPunctuation` reads punctuation between triples or triple parts.
-  _readPunctuation: function (token, empty) {
-    var next;
-    switch (token.type) {
-    // A dot just ends the statement, without sharing anything with the next.
-    case 'dot':
-      next = this._readInTopContext;
-      break;
-    // Semicolon means the subject is shared; predicate and object are different.
-    case 'semicolon':
-      next = this._readPredicate;
-      break;
-    // Comma means both the subject and predicate are shared; the object is different.
-    case 'comma':
-      next = this._readObject;
-      break;
-    default:
-      return this._error('Expected punctuation to follow "' + this._object + '"', token);
-    }
-    // A triple has been completed now, so return it.
-    if (!empty)
-      this._callback(null, { subject: this._subject,
-                             predicate: this._predicate,
-                             object: this._object,
-                             graph: RVInnerN3Parser.prototype.defaultGraph });
-    return next;
-  },
-
-  // ### `_readPrefix` reads the prefix of a prefix declaration.
-  _readPrefix: function (token) {
-    if (token.type !== 'prefix')
-      return this._error('Expected prefix to follow @prefix', token);
-    this._prefix = token.value;
-    return this._readPrefixURI;
-  },
-
-  // ### `_readPrefixURI` reads the URI of a prefix declaration.
-  _readPrefixURI: function (token) {
-    if (token.type !== 'explicituri')
-      return this._error('Expected explicituri to follow prefix "' + this.prefix + '"', token);
-    var prefixURI;
-    if (this._baseURI === null || absoluteURI.test(token.value))
-      prefixURI = token.value;
-    else
-      prefixURI = (hashURI.test(token.value) ? this._baseURI : this._baseURIRoot) + token.value;
-    this._prefixes[this._prefix] = prefixURI;
-    return this._readDeclarationPunctuation;
-  },
-
-  // ### `_readBaseURI` reads the URI of a base declaration.
-  _readBaseURI: function (token) {
-    if (token.type !== 'explicituri')
-      return this._error('Expected explicituri to follow base declaration', token);
-    if (this._baseURI === null || absoluteURI.test(token.value))
-      this._baseURI = token.value;
-    else
-      this._baseURI = (hashURI.test(token.value) ? this._baseURI : this._baseURIRoot) + token.value;
-    this._baseURIRoot = this._baseURI.replace(documentPart, '');
-    return this._readDeclarationPunctuation;
-  },
-
-  // ### `_readDeclarationPunctuation` reads the punctuation of a declaration.
-  _readDeclarationPunctuation: function (token) {
-    // SPARQL-style declarations don't have punctuation.
-    if (this._sparqlStyle)
-      return this._readInTopContext(token);
-
-    if (token.type !== 'dot')
-      return this._error('Expected declaration to end with a dot', token);
-    return this._readInTopContext;
-  },
-
-  // ### `_getNextReader` gets the next reader function at the end of a triple.
-  _getNextReader: function () {
-    var stack = this._tripleStack;
-    if (stack.length === 0)
-      return this._readPunctuation;
-
-    switch (stack[stack.length - 1].type) {
-    case 'blank':
-      return this._readBlankNodeTail;
-    case 'list':
-      return this._readListItem;
-    }
-  },
-
-  // ### `_error` emits an error message through the callback.
-  _error: function (message, token) {
-    this._callback(message + ' at line ' + token.line + '.');
-  },
-
-  // ## Public methods
-
-  // ### `parse` parses the N3 input and emits each parsed triple through the callback.
-  parse: function (input, callback) {
     var self = this;
-    // Initialize prefix declarations.
-    this._prefixes = Object.create(null);
-    // Set the triple callback.
-    this._callback = callback;
-    // The read callback is the next function to be executed when a token arrives.
-    // We start reading in the top context.
-    this._readCallback = this._readInTopContext;
-    // Execute the read callback when a token arrives.
     this._lexer.tokenize(input, function (error, token) {
-      if(error !== null && self._readCallback === _undefined) {
-        self._callback(error);
-      } else if (self._readCallback !== _undefined) {
-        if (error !== null)
-          self._callback(error);
-        else
-          self._readCallback = self._readCallback(token);
-      }
+      if (error !== null)
+        self._callback(error), self._callback = noop;
+      else if (self._readCallback !== undefined)
+        self._readCallback = self._readCallback(token);
     });
+
+    // If no input was given, it can be added with `addChunk` and ended with `end`
+    if (!input) {
+      this.addChunk = this._lexer.addChunk;
+      this.end = this._lexer.end;
+    }
   }
 };
-*/
+
+// The empty function
+function noop() {}
 
 // ## Exports
 
-// Export the `RVInnerN3Parser` class as a whole.
+// Export the `N3Parser` class as a whole.
 
+// end of ./node_modules/n3/lib/N3Parser.js
 
+// Add a wrapper around the N3.js parser
 var RVN3Parser = {};
+RVN3Parser.parser = {
+  async: true,
 
-RVN3Parser.parser = {};
-// The parser is asynchronous
-RVN3Parser.parser.async = true;
+  parse: function (data, graph, options, callback) {
+    // Shift arguments if necessary
+    if (!callback)
+        callback = options, options = graph, graph = null;
+    // Make sure graph is an object
+    if (graph && typeof(graph) === 'string')
+      graph = { token: 'uri', value: graph, prefix: null, suffix: null };
+    // Convert options
+    if (options && options.baseURI)
+      options.documentURI = options.baseURI;
 
-RVN3Parser.parser.parse = function() {
-
-
-    var data = arguments[0];
-    var graph = arguments[1];
-    var options = arguments[2];
-    var cb = arguments[3];
-
-    if(arguments.length === 3) {
-        graph = null;
-        options = arguments[1];
-        cb = arguments[2];
-    } else if(arguments.length !== 4) {
-        cb(false, "Wrong number of arguments, 3, 4 args required");
-    }
-    if(graph && typeof(graph) === 'string')
-        graph = {token: 'uri', value: graph, prefix: null, suffix: null};
-
-    var parser = new RVInnerN3Parser(options);
-    RVInnerN3Parser.prototype.defaultGraph = graph;
-
+    // Parse triples into array
     var triples = [];
-
-     parser.parse(data, function(err,triple) {
-        if(err) {
-            cb(false, err);
-        } else {
-            if(triple) {
-               triples.push(triple);
-            } else {
-               cb(true, triples);
-            }
-        }
-     });
+    new N3Parser(options).parse(data, function (error, triple) {
+      if (error)
+        callback(false, error);
+      else if (!triple)
+        callback(true, triples);
+      else
+        triples.push({
+          subject:   convertEntity(triple.subject),
+          predicate: convertEntity(triple.predicate),
+          object:    convertEntity(triple.object),
+          graph:     graph});
+    });
+  }
 };
+
+// Converts an entity in N3.js representation to this library's representation
+function convertEntity(entity) {
+  switch (entity[0]) {
+    case '"': return { literal: entity };
+    case '_': return { blank: entity.replace('b', '') };
+    default:  return { token: 'uri', value: entity, prefix: null, suffix: null };
+  };
+}
 
 // end of ./src/js-communication/src/rvn3_parser.js 
 // exports
 var RDFLoader = {};
 
 // imports
-var N3Parser = RVN3Parser;
+
 RDFLoader.RDFLoader = function (params) {
     this.precedences = ["text/turtle", "text/n3", "application/ld+json", "application/json"/*, "application/rdf+xml"*/];
-    this.parsers = {"text/turtle":N3Parser.parser, "text/n3":N3Parser.parser, "application/ld+json":JSONLDParser.parser, "application/json":JSONLDParser.parser/*, "application/rdf+xml":RDFXMLParser.parser*/};
+    this.parsers = {"text/turtle":RVN3Parser.parser, "text/n3":RVN3Parser.parser, "application/ld+json":JSONLDParser.parser, "application/json":JSONLDParser.parser, "application/rdf+xml":RDFXMLParser.parser};
     if (params != null) {
         for (var mime in params["parsers"]) {
             this.parsers[mime] = params["parsers"][mime];
@@ -23679,7 +23369,9 @@ SparqlParser.parser = (function(){
         }
         if (result0 !== null) {
           result1 = [];
-          if (/^[^'\\]/.test(input.charAt(pos))) {
+          if (input.substr(pos, 3) == result0) {
+            result2 = null;
+          } else if (/^[^\\]/.test(input.charAt(pos))) {
             result2 = input.charAt(pos);
             pos++;
           } else {
@@ -23693,7 +23385,9 @@ SparqlParser.parser = (function(){
           }
           while (result2 !== null) {
             result1.push(result2);
-            if (/^[^'\\]/.test(input.charAt(pos))) {
+            if (input.substr(pos, 3) == result0) {
+              result2 = null;
+            } else if (/^[^\\]/.test(input.charAt(pos))) {
               result2 = input.charAt(pos);
               pos++;
             } else {
@@ -23761,7 +23455,9 @@ SparqlParser.parser = (function(){
         }
         if (result0 !== null) {
           result1 = [];
-          if (/^[^"\\]/.test(input.charAt(pos))) {
+          if (input.substr(pos, 3) == result0) {
+            result2 = null;
+          } else if (/^[^\\]/.test(input.charAt(pos))) {
             result2 = input.charAt(pos);
             pos++;
           } else {
@@ -23775,7 +23471,9 @@ SparqlParser.parser = (function(){
           }
           while (result2 !== null) {
             result1.push(result2);
-            if (/^[^"\\]/.test(input.charAt(pos))) {
+            if (input.substr(pos, 3) == result0) {
+              result2 = null;
+            } else if (/^[^\\]/.test(input.charAt(pos))) {
               result2 = input.charAt(pos);
               pos++;
             } else {
@@ -24769,6 +24467,771 @@ SparqlParser.parser = (function(){
   return result;
 })();
 // end of ./src/js-sparql-parser/src/sparql_parser.js 
+/**
+ * @fileoverview
+ * TABULATOR RDF PARSER
+ *
+ * Version 0.1
+ *  Parser believed to be in full positive RDF/XML parsing compliance
+ *  with the possible exception of handling deprecated RDF attributes
+ *  appropriately. Parser is believed to comply fully with other W3C
+ *  and industry standards where appropriate (DOM, ECMAScript, &c.)
+ *
+ *  Author: David Sheets <dsheets@mit.edu>
+ *  SVN ID: $Id$
+ *
+ * W3C® SOFTWARE NOTICE AND LICENSE
+ * http://www.w3.org/Consortium/Legal/2002/copyright-software-20021231
+ * This work (and included software, documentation such as READMEs, or
+ * other related items) is being provided by the copyright holders under
+ * the following license. By obtaining, using and/or copying this work,
+ * you (the licensee) agree that you have read, understood, and will
+ * comply with the following terms and conditions.
+ *
+ * Permission to copy, modify, and distribute this software and its
+ * documentation, with or without modification, for any purpose and
+ * without fee or royalty is hereby granted, provided that you include
+ * the following on ALL copies of the software and documentation or
+ * portions thereof, including modifications:
+ *
+ * 1. The full text of this NOTICE in a location viewable to users of
+ * the redistributed or derivative work.
+ * 2. Any pre-existing intellectual property disclaimers, notices, or terms and
+ * conditions. If none exist, the W3C Software Short Notice should be
+ * included (hypertext is preferred, text is permitted) within the body
+ * of any redistributed or derivative code.
+ * 3. Notice of any changes or modifications to the files, including the
+ * date changes were made. (We recommend you provide URIs to the location
+ * from which the code is derived.)
+ *
+ * THIS SOFTWARE AND DOCUMENTATION IS PROVIDED "AS IS," AND COPYRIGHT
+ * HOLDERS MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY OR FITNESS
+ * FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF THE SOFTWARE OR
+ * DOCUMENTATION WILL NOT INFRINGE ANY THIRD PARTY PATENTS, COPYRIGHTS,
+ * TRADEMARKS OR OTHER RIGHTS.
+ *
+ * COPYRIGHT HOLDERS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL
+ * OR CONSEQUENTIAL DAMAGES ARISING OUT OF ANY USE OF THE SOFTWARE OR
+ * DOCUMENTATION.
+ *
+ * The name and trademarks of copyright holders may NOT be used in
+ * advertising or publicity pertaining to the software without specific,
+ * written prior permission. Title to copyright in this software and any
+ * associated documentation will at all times remain with copyright
+ * holders.
+ */
+/**
+ * @class Class defining an RDFParser resource object tied to an RDFStore
+ *
+ * @author David Sheets <dsheets@mit.edu>
+ * @version 0.1
+ *
+ * @constructor
+ * @param {RDFStore} store An RDFStore object
+ */
+var TabulatorRDFXMLParser = function() {
+
+    var URIJoin = function(given, base) {
+        var baseHash = base.indexOf('#')
+        if (baseHash > 0) base = base.slice(0, baseHash)
+        if (given.length == 0) return base // before chopping its filename off
+        if (given.indexOf('#') == 0) return base + given
+        var colon = given.indexOf(':')
+        if (colon >= 0) return given // Absolute URI form overrides base URI
+        var baseColon = base.indexOf(':')
+        if (base == "") return given;
+        if (baseColon < 0) {
+            throw "Invalid Base URI";
+        }
+        var baseScheme = base.slice(0, baseColon + 1) // eg http:
+        if (given.indexOf("//") == 0) // Starts with //
+            return baseScheme + given;
+        if (base.indexOf('//', baseColon) == baseColon + 1) { // Any hostpart?
+            var baseSingle = base.indexOf("/", baseColon + 3)
+            if (baseSingle < 0) {
+                if (base.length - baseColon - 3 > 0) {
+                    return base + "/" + given
+                } else {
+                    return baseScheme + given
+                }
+            }
+        } else {
+            var baseSingle = base.indexOf("/", baseColon + 1)
+            if (baseSingle < 0) {
+                if (base.length - baseColon - 1 > 0) {
+                    return base + "/" + given
+                } else {
+                    return baseScheme + given
+                }
+            }
+        }
+
+        if (given.indexOf('/') == 0) // starts with / but not //
+            return base.slice(0, baseSingle) + given
+
+        var path = base.slice(baseSingle)
+        var lastSlash = path.lastIndexOf("/")
+        if (lastSlash < 0) return baseScheme + given
+        if ((lastSlash >= 0) && (lastSlash < (path.length - 1)))
+            path = path.slice(0, lastSlash + 1) // Chop trailing filename from base
+
+        path = path + given
+        while (path.match(/[^\/]*\/\.\.\//)) // must apply to result of prev
+            path = path.replace(/[^\/]*\/\.\.\//, '') // ECMAscript spec 7.8.5
+        path = path.replace(/\.\//g, '') // spec vague on escaping
+        path = path.replace(/\/\.$/, '/')
+        return base.slice(0, baseSingle) + path
+    }
+
+    var RDFParser = function(store) {
+        var RDFParser = {};
+
+        /** Standard namespaces that we know how to handle @final
+         *  @member RDFParser
+         */
+        RDFParser.ns = {
+                'RDF': "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+                'RDFS': "http://www.w3.org/2000/01/rdf-schema#"
+            }
+            /** DOM Level 2 node type magic numbers @final
+             *  @member RDFParser
+             */
+        RDFParser.nodeType = {
+            'ELEMENT': 1,
+            'ATTRIBUTE': 2,
+            'TEXT': 3,
+            'CDATA_SECTION': 4,
+            'ENTITY_REFERENCE': 5,
+            'ENTITY': 6,
+            'PROCESSING_INSTRUCTION': 7,
+            'COMMENT': 8,
+            'DOCUMENT': 9,
+            'DOCUMENT_TYPE': 10,
+            'DOCUMENT_FRAGMENT': 11,
+            'NOTATION': 12
+        }
+
+        /**
+         * Frame class for namespace and base URI lookups
+         * Base lookups will always resolve because the parser knows
+         * the default base.
+         *
+         * @private
+         */
+        this.frameFactory = function(parser, parent, element) {
+            return {
+                'NODE': 1,
+                'ARC': 2,
+                'parent': parent,
+                'parser': parser,
+                'store': parser.store,
+                'element': element,
+                'lastChild': 0,
+                'base': null,
+                'lang': null,
+                'node': null,
+                'nodeType': null,
+                'listIndex': 1,
+                'rdfid': null,
+                'datatype': null,
+                'collection': false,
+
+                /** Terminate the frame and notify the store that we're done */
+                'terminateFrame': function() {
+                    if (this.collection) {
+                        // create the collection triples
+                        var pn = this.node;
+                        for(var i = 0, l = this.node.nodes.length; i < l; i++) {
+                            var n = this.store.bnode();
+                            this.store.add(pn, this.store.sym(RDFParser.ns.RDF + "first"), this.node.nodes[i]);
+                            if(i < l-1)
+                                this.store.add(pn, this.store.sym(RDFParser.ns.RDF + "rest"), n);
+                            else
+                                this.store.add(pn, this.store.sym(RDFParser.ns.RDF + "rest"), this.store.sym(RDFParser.ns.RDF + "nil"));
+                            pn = n;
+                        }
+                    }
+                },
+
+                /** Add a symbol of a certain type to the this frame */
+                'addSymbol': function(type, uri) {
+                    uri = URIJoin(uri, this.base)
+                    this.node = this.store.sym(uri)
+                    this.nodeType = type
+                },
+
+                /** Load any constructed triples into the store */
+                'loadTriple': function() {
+                    if (this.parent.parent.collection) {
+                        this.parent.parent.node.append(this.node)
+                    } else {
+                        this.store.add(this.parent.parent.node,
+                            this.parent.node,
+                            this.node,
+                            this.parser.why)
+                    }
+                    if (this.parent.rdfid != null) { // reify
+                        var triple = this.store.sym(
+                            URIJoin("#" + this.parent.rdfid,
+                                this.base))
+                        this.store.add(triple,
+                            this.store.sym(
+                                RDFParser.ns.RDF + "type"),
+                            this.store.sym(
+                                RDFParser.ns.RDF + "Statement"),
+                            this.parser.why)
+                        this.store.add(triple,
+                            this.store.sym(
+                                RDFParser.ns.RDF + "subject"),
+                            this.parent.parent.node,
+                            this.parser.why)
+                        this.store.add(triple,
+                            this.store.sym(
+                                RDFParser.ns.RDF + "predicate"),
+                            this.parent.node,
+                            this.parser.why)
+                        this.store.add(triple,
+                            this.store.sym(
+                                RDFParser.ns.RDF + "object"),
+                            this.node,
+                            this.parser.why)
+                    }
+                },
+
+                /** Check if it's OK to load a triple */
+                'isTripleToLoad': function() {
+                    return (this.parent != null && this.parent.parent != null && this.nodeType == this.NODE && this.parent.nodeType == this.ARC && this.parent.parent.nodeType == this.NODE)
+                },
+
+                /** Add a symbolic node to this frame */
+                'addNode': function(uri) {
+                    this.addSymbol(this.NODE, uri)
+                    if (this.isTripleToLoad()) {
+                        this.loadTriple()
+                    }
+                },
+
+                /** Add a collection node to this frame */
+                'addCollection': function() {
+                    this.nodeType = this.NODE
+                    this.node = this.store.collection()
+                    this.collection = true
+                    if (this.isTripleToLoad()) {
+                        this.loadTriple()
+                    }
+                },
+
+                /** Add a collection arc to this frame */
+                'addCollectionArc': function() {
+                    this.nodeType = this.ARC
+                },
+
+                /** Add a bnode to this frame */
+                'addBNode': function(id) {
+                    if (id != null) {
+                        if (this.parser.bnodes[id] != null) {
+                            this.node = this.parser.bnodes[id]
+                        } else {
+                            this.node = this.parser.bnodes[id] = this.store.bnode()
+                        }
+                    } else {
+                        this.node = this.store.bnode()
+                    }
+
+                    this.nodeType = this.NODE
+                    if (this.isTripleToLoad()) {
+                        this.loadTriple()
+                    }
+                },
+
+                /** Add an arc or property to this frame */
+                'addArc': function(uri) {
+                    if (uri == RDFParser.ns.RDF + "li") {
+                        uri = RDFParser.ns.RDF + "_" + this.parent.listIndex ++
+                    }
+                    this.addSymbol(this.ARC, uri)
+                },
+
+                /** Add a literal to this frame */
+                'addLiteral': function(value) {
+                    if (this.parent.datatype) {
+                        this.node = this.store.literal(
+                            value, "", this.store.sym(
+                                this.parent.datatype))
+                    } else {
+                        this.node = this.store.literal(
+                            value, this.lang)
+                    }
+                    this.nodeType = this.NODE
+                    if (this.isTripleToLoad()) {
+                        this.loadTriple()
+                    }
+                }
+            }
+        }
+
+        //from the OpenLayers source .. needed to get around IE problems.
+        this.getAttributeNodeNS = function(node, uri, name) {
+            // console.log("GETTING ATTROBUTE "+name+", "+uri);
+            //// console.log(node._nodeName);
+            var attributeNode = null;
+            if (node.getAttributeNodeNS) {
+                // console.log("HEY!");
+                attributeNode = node.getAttributeNodeNS(uri, name);
+            } else {
+                // console.log("NOPE!");
+                var attributes = node.attributes;
+                var potentialNode, fullName;
+                for (var i = 0; i < attributes.length; ++i) {
+                    potentialNode = attributes[i];
+                    // console.log("  - POTENTIAL NODE "+potentialNode);
+                    if (potentialNode.namespaceURI == uri) {
+                        fullName = (potentialNode.prefix) ?
+                            (potentialNode.prefix + ":" + name) : name;
+                        if (fullName == potentialNode.nodeName) {
+                            attributeNode = potentialNode;
+                            break;
+                        }
+                    }
+                }
+            }
+            return attributeNode;
+        }
+
+        /** Our triple store reference @private */
+        this.store = store
+            /** Our identified blank nodes @private */
+        this.bnodes = {}
+            /** A context for context-aware stores @private */
+        this.why = null
+            /** Reification flag */
+        this.reify = false
+
+        /**
+         * Build our initial scope frame and parse the DOM into triples
+         * @param {DOMTree} document The DOM to parse
+         * @param {String} base The base URL to use
+         * @param {Object} why The context to which this resource belongs
+         */
+        this.parse = function(document, base, why) {
+            // console.log("\n\nPARSING...");
+            // console.log(document);
+            var children = document.childNodes
+
+            // clean up for the next run
+            this.cleanParser()
+
+            // figure out the root element
+            //var root = document.documentElement; //this is faster, I think, cross-browser issue? well, DOM 2
+            if (document.nodeType == RDFParser.nodeType.DOCUMENT) {
+                for (var c = 0; c < children.length; c++) {
+                    if (children[c].nodeType == RDFParser.nodeType.ELEMENT) {
+                        var root = children[c]
+                        break
+                    }
+                }
+            } else if (document.nodeType == RDFParser.nodeType.ELEMENT) {
+                var root = document
+            } else {
+                throw new Error("RDFParser: can't find root in " + base + ". Halting. ");
+            }
+
+            this.why = why
+
+            // our topmost frame
+
+            var f = this.frameFactory(this)
+            this.base = base
+            f.base = base
+            f.lang = ''
+
+            this.parseDOM(this.buildFrame(f, root))
+            return true
+        }
+        this.parseDOM = function(frame) {
+            // a DOM utility function used in parsing
+            var nsrepo = {};
+
+            var elementURI = function(el) {
+                // console.log("GETTINT ELEMENT URI!");
+                //// console.log(el);
+                var result = "";
+                if (el.namespaceURI) {
+                    result = result + el.namespaceURI;
+                }
+                if (el.localName) {
+                    result = result + el.localName;
+                } else if (el.nodeName) {
+                    if (el.nodeName.indexOf(":") >= 0)
+                        result = result + el.nodeName.split(":")[1];
+                    else
+                        result = result + el.nodeName;
+                } else {
+                    // console.log("INCOMPATIBLE!");
+                }
+                return result;
+            }
+            var dig = true // if we'll dig down in the tree on the next iter
+
+            while (frame.parent) {
+                var dom = frame.element
+                var attrs = dom.attributes
+
+                // console.log("\n\n\nELEMENT URI!! " + elementURI(dom));
+                //// console.log(dom);
+
+                if (dom.nodeType == RDFParser.nodeType.TEXT || dom.nodeType == RDFParser.nodeType.CDATA_SECTION) { //we have a literal
+                    frame.addLiteral(dom.nodeValue)
+                } else if (elementURI(dom) != RDFParser.ns.RDF + "RDF") { // not root
+                    // console.log(" * NOT ROOT");
+                    if (frame.parent && frame.parent.collection) {
+                        // we're a collection element
+                        // console.log(" * COLLECTION ELEMENT")
+                        frame.addCollectionArc()
+                        frame = this.buildFrame(frame, frame.element)
+                        frame.parent.element = null
+                    }
+                    if (!frame.parent || !frame.parent.nodeType || frame.parent.nodeType == frame.ARC) {
+                        // console.log("\n\n----");
+                        // we need a node
+                        // console.log(" * LOOKING FOR A NODE");
+                        var about = this.getAttributeNodeNS(dom,
+                                RDFParser.ns.RDF, "about")
+                            // console.log("FOUND ABOUT");
+                            // console.log(about);
+                        var rdfid = this.getAttributeNodeNS(dom,
+                            RDFParser.ns.RDF, "ID")
+                        if (about && rdfid) {
+                            throw new Error("RDFParser: " + dom.nodeName + " has both rdf:id and rdf:about." + " Halting. Only one of these" + " properties may be specified on a" + " node.");
+                        }
+                        if (about == null && rdfid) {
+                            frame.addNode("#" + rdfid.nodeValue)
+                            dom.removeAttributeNode(rdfid)
+                        } else if (about == null && rdfid == null) {
+                            var bnid = this.getAttributeNodeNS(dom,
+                                RDFParser.ns.RDF, "nodeID")
+                            if (bnid) {
+                                frame.addBNode(bnid.nodeValue)
+                                dom.removeAttributeNode(bnid)
+                            } else {
+                                frame.addBNode()
+                            }
+                        } else {
+                            frame.addNode(about.nodeValue)
+                            dom.removeAttributeNode(about)
+                        }
+
+                        // Typed nodes
+                        var rdftype = this.getAttributeNodeNS(dom,
+                            RDFParser.ns.RDF, "type")
+                        if (RDFParser.ns.RDF + "Description" != elementURI(dom)) {
+                            rdftype = {
+                                'nodeValue': elementURI(dom)
+                            }
+                        }
+                        if (rdftype != null) {
+                            this.store.add(frame.node,
+                                this.store.sym(
+                                    RDFParser.ns.RDF + "type"),
+                                this.store.sym(
+                                    URIJoin(
+                                        rdftype.nodeValue,
+                                        frame.base)),
+                                this.why)
+                            if (rdftype.nodeName) {
+                                dom.removeAttributeNode(rdftype)
+                            }
+                        }
+
+                        // Property Attributes
+                        for (var x = attrs.length - 1; x >= 0; x--) {
+                            this.store.add(frame.node,
+                                this.store.sym(
+                                    elementURI(attrs[x])),
+                                this.store.literal(
+                                    attrs[x].nodeValue,
+                                    frame.lang),
+                                this.why)
+                        }
+                    } else { // we should add an arc (or implicit bnode+arc)
+                        // console.log("WE SHOULD ADD AN ARC");
+                        frame.addArc(elementURI(dom))
+
+                        // save the arc's rdf:ID if it has one
+                        if (this.reify) {
+                            var rdfid = this.getAttributeNodeNS(dom,
+                                RDFParser.ns.RDF, "ID")
+                            if (rdfid) {
+                                frame.rdfid = rdfid.nodeValue
+                                dom.removeAttributeNode(rdfid)
+                            }
+                        }
+
+                        var parsetype = this.getAttributeNodeNS(dom,
+                            RDFParser.ns.RDF, "parseType")
+                        var datatype = this.getAttributeNodeNS(dom,
+                            RDFParser.ns.RDF, "datatype")
+                        if (datatype) {
+                            frame.datatype = datatype.nodeValue
+                            dom.removeAttributeNode(datatype)
+                        }
+
+                        if (parsetype) {
+                            var nv = parsetype.nodeValue
+                            if (nv == "Literal") {
+                                frame.datatype = RDFParser.ns.RDF + "XMLLiteral"
+                                    // (this.buildFrame(frame)).addLiteral(dom)
+                                    // should work but doesn't
+                                frame = this.buildFrame(frame)
+                                frame.addLiteral(dom)
+                                dig = false
+                            } else if (nv == "Resource") {
+                                frame = this.buildFrame(frame, frame.element)
+                                frame.parent.element = null
+                                frame.addBNode()
+                            } else if (nv == "Collection") {
+                                frame = this.buildFrame(frame, frame.element)
+                                frame.parent.element = null
+                                frame.addCollection()
+                            }
+                            dom.removeAttributeNode(parsetype)
+                        }
+
+                        if (attrs.length != 0) {
+                            var resource = this.getAttributeNodeNS(dom,
+                                RDFParser.ns.RDF, "resource")
+                            var bnid = this.getAttributeNodeNS(dom,
+                                RDFParser.ns.RDF, "nodeID")
+
+                            frame = this.buildFrame(frame)
+                            if (resource) {
+                                frame.addNode(resource.nodeValue)
+                                dom.removeAttributeNode(resource)
+                            } else {
+                                if (bnid) {
+                                    frame.addBNode(bnid.nodeValue)
+                                    dom.removeAttributeNode(bnid)
+                                } else {
+                                    frame.addBNode()
+                                }
+                            }
+
+                            for (var x = attrs.length - 1; x >= 0; x--) {
+                                var f = this.buildFrame(frame)
+                                f.addArc(elementURI(attrs[x]))
+                                if (elementURI(attrs[x]) == RDFParser.ns.RDF + "type") {
+                                    (this.buildFrame(f)).addNode(
+                                        attrs[x].nodeValue)
+                                } else {
+                                    (this.buildFrame(f)).addLiteral(
+                                        attrs[x].nodeValue)
+                                }
+                            }
+                        } else if (dom.childNodes.length == 0) {
+                            (this.buildFrame(frame)).addLiteral("")
+                        }
+                    }
+                } // rdf:RDF
+
+                // dig dug
+                dom = frame.element
+                while (frame.parent) {
+                    var pframe = frame
+                    while (dom == null) {
+                        frame = frame.parent
+                        dom = frame.element
+                    }
+                    var candidate = dom.childNodes[frame.lastChild]
+                    if (candidate == null || !dig) {
+                        frame.terminateFrame()
+                        if (!(frame = frame.parent)) {
+                            break
+                        } // done
+                        dom = frame.element
+                        dig = true
+                    } else if ((candidate.nodeType != RDFParser.nodeType.ELEMENT && candidate.nodeType != RDFParser.nodeType.TEXT && candidate.nodeType != RDFParser.nodeType.CDATA_SECTION) || ((candidate.nodeType == RDFParser.nodeType.TEXT || candidate.nodeType == RDFParser.nodeType.CDATA_SECTION) && dom.childNodes.length != 1)) {
+                        frame.lastChild ++
+                    } else { // not a leaf
+                        frame.lastChild ++
+                            frame = this.buildFrame(pframe,
+                                dom.childNodes[frame.lastChild - 1])
+                        break
+                    }
+                }
+            } // while
+        }
+
+        /**
+         * Cleans out state from a previous parse run
+         * @private
+         */
+        this.cleanParser = function() {
+            this.bnodes = {}
+            this.why = null
+        }
+
+        /**
+         * Builds scope frame
+         * @private
+         */
+        this.buildFrame = function(parent, element) {
+            var frame = this.frameFactory(this, parent, element)
+            if (parent) {
+                frame.base = parent.base
+                frame.lang = parent.lang
+            }
+            if (element == null || element.nodeType == RDFParser.nodeType.TEXT || element.nodeType == RDFParser.nodeType.CDATA_SECTION) {
+                return frame
+            }
+
+            var attrs = element.attributes
+
+            var base = element.getAttributeNode("xml:base")
+            if (base != null) {
+                frame.base = base.nodeValue
+                element.removeAttribute("xml:base")
+            }
+            var lang = element.getAttributeNode("xml:lang")
+            if (lang != null) {
+                frame.lang = lang.nodeValue
+                element.removeAttribute("xml:lang")
+            }
+
+            // remove all extraneous xml and xmlns attributes
+            for (var x = attrs.length - 1; x >= 0; x--) {
+                if (attrs[x].nodeName.substr(0, 3) == "xml") {
+                    if (attrs[x].name.slice(0, 6) == 'xmlns:') {
+                        var uri = attrs[x].nodeValue;
+                        if (this.base) uri = URIJoin(uri, this.base);
+                        this.store.setPrefixForURI(attrs[x].name.slice(6),
+                            uri);
+                    }
+                    element.removeAttributeNode(attrs[x])
+                }
+            }
+            return frame
+        }
+    }
+
+    var createXMLDocument = function(string) {
+        var parser, xmlDoc;
+        if (typeof module != 'undefined') {
+            var jsdom = require('jsdom');
+            xmlDoc = jsdom.jsdom(string, jsdom.level(2, "core"), {});
+        } else if (window.DOMParser) {
+            parser = new DOMParser();
+            xmlDoc = parser.parseFromString(string, 'text/xml');
+        } else if (window.ActiveXObject) {
+            xmlDoc = new ActiveXObject('Microsoft.XMLDOM');
+            // console.log(el._nsStore);
+            // console.log("....");
+            xmlDoc.async = 'false';
+            xmlDoc.loadXML(string);
+        }
+        return xmlDoc;
+    };
+
+    var RDFStore = function(default_graph) {
+        this.statements = [];
+        this.namespaces = {};
+
+        this.add = function(s, p, o) {
+            this.statements.push({
+                subject: s,
+                predicate: p,
+                object: o,
+                graph: default_graph
+            });
+        };
+
+        this.sym = function(x) {
+            return {
+                token: 'uri',
+                value: x
+            };
+        };
+
+        this.literal = function(str, lang, datatype) {
+            str = str.replace(/\\/g, '\\\\'); // escape backslashes
+            str = str.replace(/\"/g, '\\"'); // escape quotes
+            str = str.replace(/\n/g, '\\n'); // escape newlines
+            str = '"' + str + '"' //';
+
+            if (datatype) {
+                str = str + '^^' + datatype
+            }
+            if (lang) {
+                str = str + "@" + lang;
+            }
+            return {
+                'literal': str
+            };
+        };
+
+        var _id = 0;
+        this.bnode = function(id) {
+            id = id || "_:bnid" + _id++;
+            return {
+                'blank': id
+            }
+        };
+
+        var self = this;
+        this.collection = function() {
+            var n = self.bnode();
+            n.nodes = [];
+            n.append = function(n) {
+                this.nodes.push(n);
+            };
+            return n;
+        };
+
+        this.setPrefixForURI = function(prefix, nsuri) {
+            if (this.namespaces[prefix] || nsuri !== nsuri) {
+                throw "Can't redefine prefix " + prefix;
+            }
+            this.namespaces[prefix] = nsuri;
+        };
+    };
+
+    function _isString(v) {
+        return (typeof v === 'string' ||
+            Object.prototype.toString.call(v) === '[object String]');
+    }
+
+    function rdfXmlParser(docstring, graph) {
+        var doc = docstring;
+        if (_isString(docstring)) {
+            doc = createXMLDocument(docstring);
+        }
+
+        var s = new RDFStore(graph);
+        var parser = new RDFParser(s);
+
+        parser.parse(doc, "http://nobase");
+        return s.statements;
+    };
+
+    return {
+        parse: rdfXmlParser
+    }
+
+}();
+
+var RDFXMLParser = {};
+
+
+RDFXMLParser.parser = {};
+RDFXMLParser.parser.parse = function(data, graph) {
+    try {
+        return TabulatorRDFXMLParser.parse(data, graph);
+    } catch (e) {
+        throw e;
+    }
+};
+
+// end of ./src/js-communication/src/rdfxml_parser.js
 // exports
 var RDFJSInterface = {};
 
@@ -25144,7 +25607,7 @@ RDFJSInterface.Literal = function(value, language, datatype) {
 Utils['extends'](RDFJSInterface.RDFNode,RDFJSInterface.Literal);
 
 RDFJSInterface.Literal.prototype.toString = function(){
-    var tmp = '"'+this.nominalValue+'"';
+    var tmp = '"""'+this.nominalValue+'"""';
     if(this.language != null) {
         tmp = tmp + "@" + this.language;
     } else if(this.datatype != null || this.type) {
